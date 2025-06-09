@@ -13,7 +13,22 @@ import JobSeekerDashboard from './pages/JobSeekerDashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
 
+
+
+
+import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { initializeAuth } from './store/slices/authSlice';
+import { ViewProfile } from './pages/ViewProfile';
+import { UpdateProfile } from './pages/UpdateProfile';
+
 function App() {
+
+   const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(initializeAuth());
+  }, [dispatch]);
   return (
     <Routes>
       <Route path="/" element={<WelcomePage />} />
@@ -33,9 +48,11 @@ function App() {
         </Route>
       </Route>
 
-      <Route path="/user" element={<PrivateRoutes />}>
+       <Route path="/user" element={<PrivateRoutes />}>
         <Route path="hiring" element={<HiringPersonDashboard />} />
         <Route path="jobseeker" element={<JobSeekerDashboard />} />
+        <Route path="profile/view" element={<ViewProfile />} />
+        <Route path="profile/edit" element={<UpdateProfile />} />  
       </Route>
     </Routes>
   );
