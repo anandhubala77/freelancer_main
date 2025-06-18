@@ -1,66 +1,61 @@
-import React from 'react';
-import Button from './Button';
+import React from "react";
+import { Trash2, Pencil, UserPlus } from "lucide-react";
+import Button from "./Button";
 
-const JobCard = ({ job, onQuote, onEdit, onDelete, onHire, status = 'posted' }) => {
+const JobCard = ({ job, onEdit, onDelete, onHire, status }) => {
+  const handleHireJobSeeker = () => {
+  if (job._id && job.freelancer && job.freelancer._id) {
+    onHire(job._id, job.freelancer._id);
+  } else {
+    console.error("Missing job ID or freelancer ID", job);
+  }
+};
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 mb-4 border border-blueeclipse-700">
-      <div className="flex flex-col sm:flex-row justify-between items-start mb-4 sm:mb-6">
-        <div>
-          <h3 className="text-lg sm:text-xl font-semibold text-blueeclipse-700">{job.title}</h3>
-          <p className="text-sm sm:text-base text-blueeclipse-700">{job.category}</p>
-          <p className="text-sm sm:text-base text-blueeclipse-700">Budget: ${job.budget}</p>
-        </div>
-        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mt-4 sm:mt-0">
-          {onEdit && (
-            <Button onClick={onEdit} variant="secondary" className="w-full sm:w-auto">
-              Edit
-            </Button>
-          )}
-          {onDelete && (
-            <Button onClick={onDelete} variant="danger" className="w-full sm:w-auto">
-              Delete
-            </Button>
-          )}
-        </div>
-      </div>
-      <div className="mt-4">
-        <p className="text-sm sm:text-base text-stormy-700">{job.description}</p>
+    <div className="border rounded-lg shadow-sm p-4 bg-white flex flex-col justify-between h-full">
+      {/* Job Info Section */}
+      <div>
+        <h3 className="text-lg font-semibold mb-1">{job.title}</h3>
+        <p className="text-gray-600 text-sm mb-2 line-clamp-3">
+          {job.description}
+        </p>
+        <p className="text-blue-600 text-sm font-medium">
+          Budget: ${job.budget}
+        </p>
+        <p className="text-xs text-gray-500 mt-1">Status: {job.status}</p>
       </div>
 
-      {status === 'posted' && (
-        <div className="mt-4 sm:mt-6">
-          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-            {onQuote && (
-              <Button onClick={onQuote} variant="primary" className="w-full sm:w-auto">
-                View Quotes
-              </Button>
-            )}
-            {onHire && (
-              <Button onClick={() => onHire(job.id)} variant="success" className="w-full sm:w-auto">
-                Hire Freelancer
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Action Buttons */}
+      <div className="mt-4 flex justify-between items-center flex-wrap gap-2">
+        {/* Edit/Delete */}
+        <div className="flex gap-2">
+          <Button
+            onClick={onEdit}
+            className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200 px-3 py-1 text-sm flex items-center"
+          >
+            <Pencil className="w-4 h-4 mr-1" />
+            Edit
+          </Button>
 
-      {status === 'active' && (
-        <div className="mt-4 sm:mt-6">
-          <div className="flex flex-col sm:flex-row justify-between">
-            <p className="text-sm sm:text-base text-blueeclipse-700">Assigned to: {job.assignedTo?.name}</p>
-            <p className="text-sm sm:text-base text-blueeclipse-700">Progress: {job.progress}%</p>
-          </div>
+          <Button
+            onClick={onDelete}
+            className="bg-red-100 text-red-800 hover:bg-red-200 px-3 py-1 text-sm flex items-center"
+          >
+            <Trash2 className="w-4 h-4 mr-1" />
+            Delete
+          </Button>
         </div>
-      )}
 
-      {status === 'completed' && (
-        <div className="mt-4 sm:mt-6">
-          <div className="flex flex-col sm:flex-row justify-between">
-            <p className="text-green-600">Project Completed</p>
-            <p className="text-sm sm:text-base text-blueeclipse-700">Completed on: {job.completionDate}</p>
-          </div>
-        </div>
-      )}
+        {/* Hire Button (only for 'posted' jobs) */}
+        {status === "posted" ? (
+          <Button
+             onClick={() => handleHireJobSeeker(job._id)}
+            className="bg-green-100 text-green-800 hover:bg-green-200 px-3 py-1 text-sm flex items-center"
+          >
+            <UserPlus className="w-4 h-4 mr-1" />
+            Hire
+          </Button>
+        ) : null}
+      </div>
     </div>
   );
 };

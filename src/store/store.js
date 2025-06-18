@@ -11,10 +11,21 @@ import {
 } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import authReducer from './slices/authSlice';
+import projectsReducer from './slices/projectSlice';
+import hireSlice from './slices/hireSlice'
+import jobReducer from "./slices/jobSlice"; 
+import quotationReducer from './slices/quotationSlice';
+import applicationReducer from './slices/applicationSlice';
 
 const rootReducer = combineReducers({
   auth: authReducer,
-  // Add other reducers here if you have them
+  projects: projectsReducer,
+  hire: hireSlice,
+  jobs: jobReducer,
+  quotation: quotationReducer,
+  application: applicationReducer,
+
+  
 });
 
 const persistConfig = {

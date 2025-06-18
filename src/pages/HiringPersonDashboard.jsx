@@ -1,58 +1,150 @@
-import React, { useState } from 'react';
-import JobCard from '../components/JobCard';
-import JobPostingForm from '../components/JobPostingForm';
-import Modal from '../components/Modal';
-import Button from '../components/Button';
-import UserLayout from '../layout/UserLayout';
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux"; // Import Redux hooks
+import JobCard from "../components/JobCard";
+import JobPostingForm from "../components/JobPostingForm";
+import Modal from "../components/Modal";
+import Button from "../components/Button";
+import UserLayout from "../layout/UserLayout";
+import { toast } from "react-toastify"; // Assuming you use react-toastify
+import "react-toastify/dist/ReactToastify.css";
+import ApplicationsTab from "../pages/ApplicationsTab"; // Assuming you have an ApplicationTab component
+
+import { getJobSeekerById, sendHireRequest } from "../store/slices/hireSlice";
+
+import {
+  createProject,
+  updateProject,
+  deleteProject, // You'll want to dispatch this for actual deletion
+  fetchProjects, // To load all jobs from DB
+  selectAllProjects,
+  getProjectsStatus,
+  getProjectsError,
+  clearProjectStatus,
+} from "../store/slices/projectSlice";// Adjust the import path as necessary
 
 const HiringPersonDashboard = () => {
-  const [jobs, setJobs] = useState([]);
+  const dispatch = useDispatch();
+
+
+  const jobs = useSelector(selectAllProjects);
+  const projectsStatus = useSelector(getProjectsStatus);
+  const projectsError = useSelector(getProjectsError);
+
   const [isPosting, setIsPosting] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
-  const [activeTab, setActiveTab] = useState('posted');
+  const [activeTab, setActiveTab] = useState("posted");
   const [selectedJob, setSelectedJob] = useState(null);
-  const [paymentHistory, setPaymentHistory] = useState([]);
+  const [paymentHistory, setPaymentHistory] = useState([]); // This might also need Redux later
+
+  const [showHireModal, setShowHireModal] = useState(false);
+  const [jobToHire, setJobToHire] = useState(null);
+  const [jobSeekerInfo, setJobSeekerInfo] = useState(null);
+
+  useEffect(() => {
+    if (
+      projectsStatus === "idle" ||
+      projectsStatus === "succeeded" ||
+      projectsStatus === "failed"
+    ) {
+      dispatch(fetchProjects());
+    }
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (projectsStatus === "succeeded") {
+      if (isPosting && editingJob === null) {
+        toast.success("Project posted successfully!");
+      } else if (editingJob !== null) {
+        toast.success("Project updated successfully!");
+      }
+      setIsPosting(false); // Close the modal
+      setEditingJob(null); // Clear editing state
+      dispatch(clearProjectStatus()); // Reset status
+    } else if (projectsStatus === "failed") {
+      toast.error(`Error: ${projectsError}`);
+      dispatch(clearProjectStatus());
+    }
+  }, [projectsStatus, projectsError, dispatch, isPosting, editingJob]);
 
   const handlePostJob = (jobData) => {
-    setJobs(prev => [...prev, jobData]);
-    setIsPosting(false);
-    setEditingJob(null);
+    console.log("Dispatching createProject with data:", jobData); // Add this log
+    dispatch(createProject(jobData));
   };
 
+
   const handleEditJob = (jobData) => {
-    setJobs(prev =>
-      prev.map(job =>
-        job.id === jobData.id ? jobData : job
-      )
+    console.log("Dispatching updateProject with data:", jobData); // Add this log
+    dispatch(
+      updateProject({
+        projectId: jobData._id || jobData.id,
+        updatedData: jobData,
+      })
     );
-    setIsPosting(false);
-    setEditingJob(null);
   };
 
   const handleDeleteJob = (jobId) => {
-    setJobs(prev => prev.filter(job => job.id !== jobId));
+    console.log("Dispatching deleteProject for ID:", jobId); // Add this log
+    dispatch(deleteProject(jobId));
   };
 
-  const handleHireJobSeeker = (jobId, freelancerId) => {
-    // TODO: Implement hiring logic
-    console.log('Hiring freelancer:', freelancerId, 'for job:', jobId);
+
+
+  const handleHireJobSeeker = async (jobId, freelancerId) => {
+    if (!jobId || !freelancerId) {
+      console.error("Missing job ID or freelancer ID", { jobId, freelancerId });
+      return;
+    }
+
+    setJobToHire({ jobId, freelancerId });
+    dispatch(getJobSeekerById(freelancerId))
+      .unwrap()
+      .then((data) => {
+        setJobSeekerInfo(data); // <-- this was missing
+        setShowHireModal(true);
+      });
+    dispatch(getJobSeekerById(freelancerId))
+      .unwrap()
+      .then(() => {
+        setShowHireModal(true);
+      })
+      .catch((err) => {
+        toast.error("Failed to load job seeker: " + err);
+      });
+  };
+
+  const handleConfirmHire = () => {
+    if (jobToHire) {
+      dispatch(sendHireRequest(jobToHire))
+        .unwrap()
+        .then(() => {
+          toast.success("Hire request sent successfully");
+          setShowHireModal(false);
+          setJobToHire(null);
+        })
+        .catch(() => {
+          toast.error("Failed to send hire request");
+        });
+    }
   };
 
   const handleMakePayment = (jobId, amount) => {
-    // TODO: Implement payment logic
-    setPaymentHistory(prev => [...prev, {
-      jobId,
-      amount,
-      date: new Date().toISOString(),
-      status: 'pending'
-    }]);
+    setPaymentHistory((prev) => [
+      ...prev,
+      {
+        jobId,
+        amount,
+        date: new Date().toISOString(),
+        status: "pending",
+      },
+    ]);
   };
 
   const jobTabs = [
-    { id: 'posted', label: 'Posted Jobs' },
-    { id: 'active', label: 'Active Projects' },
-    { id: 'completed', label: 'Completed Projects' },
-    { id: 'payments', label: 'Payment History' }
+    { id: "posted", label: "Posted Jobs" },
+    { id: "active", label: "Active Projects" },
+    { id: "completed", label: "Completed Projects" },
+    { id: "payments", label: "Payment History" },
+     { id: "applications", label: "Applications" },
   ];
 
   return (
@@ -62,9 +154,18 @@ const HiringPersonDashboard = () => {
         <div className="bg-white shadow-md rounded-lg p-4 sm:p-6 mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <div className="mb-4 sm:mb-0">
-              <h1 className="text-xl sm:text-2xl font-bold">Hiring Dashboard</h1>
+              <h1 className="text-xl sm:text-2xl font-bold">
+                Hiring Dashboard
+              </h1>
             </div>
-            <Button onClick={() => setIsPosting(true)} variant="primary">
+
+            <Button
+              onClick={() => {
+                setIsPosting(true);
+                setEditingJob(null);
+              }}
+              variant="primary"
+            >
               Post New Job
             </Button>
           </div>
@@ -78,11 +179,10 @@ const HiringPersonDashboard = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-3 sm:px-4 py-2 sm:py-4 text-sm font-medium ${
-                    activeTab === tab.id
-                      ? 'border-b-2 border-blue-500 text-blue-600'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                  className={`px-3 sm:px-4 py-2 sm:py-4 text-sm font-medium ${activeTab === tab.id
+                      ? "border-b-2 border-blue-500 text-blue-600"
+                      : "text-gray-500 hover:text-gray-700"
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -93,39 +193,117 @@ const HiringPersonDashboard = () => {
 
         {/* Main Content */}
         <div className="bg-white shadow-md rounded-lg p-4 sm:p-6">
-          {activeTab === 'posted' && (
+          {activeTab === "posted" && (
             <div>
-              <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Posted Jobs</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">
+                Posted Jobs
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {jobs.map(job => (
-                  <JobCard
-                    key={job.id}
-                    job={job}
-                    onEdit={() => {
-                      setEditingJob(job);
-                      setIsPosting(true);
-                    }}
-                    onDelete={() => handleDeleteJob(job.id)}
-                    onHire={(freelancerId) => handleHireJobSeeker(job.id, freelancerId)}
-                    status="posted"
-                  />
-                ))}
+                {jobs
+                  .filter((job) => job.status === "posted")
+                  .map((job) => (
+                    <JobCard
+                      key={job._id}
+                      job={job}
+                      onEdit={() => {
+                        setEditingJob(job);
+                        setIsPosting(true);
+                      }}
+                      onDelete={() => handleDeleteJob(job._id)}
+                      onHire={handleHireJobSeeker}
+                      status="posted"
+                    />
+                  ))}
+                <div></div>
+                {/* Display loading/error states */}
+                {projectsStatus === "loading" && <p>Loading jobs...</p>}
+                {projectsStatus === "failed" && (
+                  <p className="text-red-500">
+                    Error loading jobs: {projectsError}
+                  </p>
+                )}
+                {projectsStatus === "succeeded" && jobs.length === 0 && (
+                  <p>No jobs posted yet.</p>
+                )}
               </div>
             </div>
           )}
 
-          {activeTab === 'active' && (
+          {activeTab === "active" && (
             <div>
-              <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Active Projects</h2>
-              {jobs.filter(job => job.status === 'active').map(job => (
-                <div key={job.id} className="bg-gray-50 rounded-lg p-4 mb-4">
-                  <div className="flex flex-col sm:flex-row justify-between items-start">
-                    <div>
-                      <h3 className="font-semibold">{job.title}</h3>
-                      <p className="text-sm text-gray-600">Status: Active</p>
+              <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">
+                Active Projects
+              </h2>
+              {jobs
+                .filter((job) => job.status === "active")
+                .map((job) => (
+                  <div key={job._id} className="bg-gray-50 rounded-lg p-4 mb-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start">
+                      <div>
+                        <h3 className="font-semibold">{job.title}</h3>
+                        <p className="text-sm text-gray-600">Status: Active</p>
+                      </div>
+                      <div className="mt-4 sm:mt-0">
+                        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                          <Button
+                            onClick={() => setSelectedJob(job)}
+                            variant="secondary"
+                            className="w-full sm:w-auto"
+                          >
+                            View Details
+                          </Button>
+                          <Button
+                            onClick={() =>
+                              handleMakePayment(job._id, job.budget)
+                            } // Use job._id
+                            variant="primary"
+                            className="w-full sm:w-auto"
+                          >
+                            Make Payment
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                    <div className="mt-4 sm:mt-0">
-                      <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                  </div>
+                ))}
+              {projectsStatus === "loading" && (
+                <p>Loading active projects...</p>
+              )}
+              {projectsStatus === "failed" && (
+                <p className="text-red-500">
+                  Error loading projects: {projectsError}
+                </p>
+              )}
+              {projectsStatus === "succeeded" &&
+                jobs.filter((job) => job.status === "active").length === 0 && (
+                  <p>No active projects.</p>
+                )}
+            </div>
+          )}
+
+          {activeTab === "completed" && (
+            <div>
+              <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">
+                Completed Projects
+              </h2>
+              {jobs
+                .filter((job) => job.status === "completed")
+                .map((job) => (
+                  <div key={job._id} className="bg-gray-50 rounded-lg p-4 mb-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start">
+                      <div>
+                        <h3 className="font-semibold">{job.title}</h3>
+                        <p className="text-sm text-gray-600">
+                          Status: Completed
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Completed on:{" "}
+                          {job.completionDate
+                            ? new Date(job.completionDate).toLocaleDateString()
+                            : "N/A"}
+                        </p>
+                      </div>
+                      <div className="mt-4 sm:mt-0">
                         <Button
                           onClick={() => setSelectedJob(job)}
                           variant="secondary"
@@ -133,59 +311,44 @@ const HiringPersonDashboard = () => {
                         >
                           View Details
                         </Button>
-                        <Button
-                          onClick={() => handleMakePayment(job.id, job.budget)}
-                          variant="primary"
-                          className="w-full sm:w-auto"
-                        >
-                          Make Payment
-                        </Button>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              {projectsStatus === "loading" && (
+                <p>Loading completed projects...</p>
+              )}
+              {projectsStatus === "failed" && (
+                <p className="text-red-500">
+                  Error loading projects: {projectsError}
+                </p>
+              )}
+              {projectsStatus === "succeeded" &&
+                jobs.filter((job) => job.status === "completed").length ===
+                0 && <p>No completed projects.</p>}
             </div>
           )}
 
-          {activeTab === 'completed' && (
+          {activeTab === "payments" && (
             <div>
-              <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Completed Projects</h2>
-              {jobs.filter(job => job.status === 'completed').map(job => (
-                <div key={job.id} className="bg-gray-50 rounded-lg p-4 mb-4">
-                  <div className="flex flex-col sm:flex-row justify-between items-start">
-                    <div>
-                      <h3 className="font-semibold">{job.title}</h3>
-                      <p className="text-sm text-gray-600">Status: Completed</p>
-                      <p className="text-sm text-gray-600">Completion Date: {job.completionDate}</p>
-                    </div>
-                    <div className="mt-4 sm:mt-0">
-                      <Button
-                        onClick={() => setSelectedJob(job)}
-                        variant="secondary"
-                        className="w-full sm:w-auto"
-                      >
-                        View Details
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {activeTab === 'payments' && (
-            <div>
-              <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Payment History</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">
+                Payment History
+              </h2>
               <div className="space-y-4">
                 {paymentHistory.map((payment, index) => (
                   <div key={index} className="bg-gray-50 rounded-lg p-4">
                     <div className="flex flex-col sm:flex-row justify-between items-start">
                       <div>
                         <h3 className="font-semibold">Payment #{index + 1}</h3>
-                        <p className="text-sm text-gray-600">Amount: ${payment.amount}</p>
-                        <p className="text-sm text-gray-600">Date: {new Date(payment.date).toLocaleDateString()}</p>
-                        <p className="text-sm text-gray-600">Status: {payment.status}</p>
+                        <p className="text-sm text-gray-600">
+                          Amount: ${payment.amount}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Date: {new Date(payment.date).toLocaleDateString()}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Status: {payment.status}
+                        </p>
                       </div>
                       <div className="text-sm text-gray-600 mt-4 sm:mt-0">
                         Job ID: {payment.jobId}
@@ -193,16 +356,28 @@ const HiringPersonDashboard = () => {
                     </div>
                   </div>
                 ))}
+                {paymentHistory.length === 0 && (
+                  <p>No payment history found.</p>
+                )}
               </div>
             </div>
           )}
+
         </div>
+        {activeTab === "applications" && (
+          <div>
+            <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">
+              Job Applications
+            </h2>
+            <ApplicationsTab />
+          </div>
+        )}
 
         {/* Modals */}
         <Modal isOpen={isPosting} onClose={() => setIsPosting(false)}>
           <div className="p-4 sm:p-6">
             <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">
-              {editingJob ? 'Edit Job' : 'Post New Job'}
+              {editingJob ? "Edit Job" : "Post New Job"}
             </h2>
             <JobPostingForm
               onSubmit={editingJob ? handleEditJob : handlePostJob}
@@ -211,22 +386,81 @@ const HiringPersonDashboard = () => {
           </div>
         </Modal>
 
-        <Modal isOpen={selectedJob !== null} onClose={() => setSelectedJob(null)}>
+        <Modal
+          isOpen={selectedJob !== null}
+          onClose={() => setSelectedJob(null)}
+        >
           <div className="p-4 sm:p-6">
-            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Project Details</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">
+              Project Details
+            </h2>
             <div className="space-y-4">
               <div>
                 <h3 className="font-semibold">{selectedJob?.title}</h3>
-                <p className="text-sm text-gray-600">{selectedJob?.description}</p>
+                <p className="text-sm text-gray-600">
+                  {selectedJob?.description}
+                </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Budget: ${selectedJob?.budget}</p>
-                <p className="text-sm text-gray-600">Status: {selectedJob?.status}</p>
+                <p className="text-sm text-gray-600">
+                  Budget: ${selectedJob?.budget}
+                </p>
+                <p className="text-sm text-gray-600">
+                  Status: {selectedJob?.status}
+                </p>
               </div>
             </div>
           </div>
         </Modal>
       </div>
+
+      <Modal isOpen={showHireModal} onClose={() => setShowHireModal(false)}>
+        <div className="p-4 sm:p-6">
+          <h2 className="text-xl font-bold mb-4">Hire Freelancer</h2>
+
+          {jobSeekerInfo ? (
+            <div className="space-y-3 mb-6">
+              <p>
+                <strong>Name:</strong> {jobSeekerInfo.name}
+              </p>
+              <p>
+                <strong>Email:</strong> {jobSeekerInfo.email}
+              </p>
+              <p>
+                <strong>Skills:</strong> {jobSeekerInfo.skills?.join(", ")}
+              </p>
+              <p>
+                <strong>Experience:</strong> {jobSeekerInfo.experience}
+              </p>
+            </div>
+          ) : (
+            <p>Loading job seeker info...</p>
+          )}
+
+          <Button
+            onClick={() => {
+              dispatch(
+                sendHireRequest({
+                  receiverId: jobSeekerInfo._id,
+                  jobId: jobToHire.jobId,
+                  message: "We would like to hire you for this project.",
+                })
+              )
+                .unwrap()
+                .then(() => {
+                  toast.success("Hire request sent successfully");
+                  setShowHireModal(false);
+                })
+                .catch((err) => {
+                  toast.error("Failed to send hire request");
+                });
+            }}
+            variant="primary"
+          >
+            Confirm Hire
+          </Button>
+        </div>
+      </Modal>
     </UserLayout>
   );
 };
