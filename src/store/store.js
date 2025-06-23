@@ -16,6 +16,7 @@ import hireSlice from './slices/hireSlice'
 import jobReducer from "./slices/jobSlice"; 
 import quotationReducer from './slices/quotationSlice';
 import applicationReducer from './slices/applicationSlice';
+import paymentReducer from './slices/paymentSlice';
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -24,6 +25,7 @@ const rootReducer = combineReducers({
   jobs: jobReducer,
   quotation: quotationReducer,
   application: applicationReducer,
+  payment: paymentReducer,
 
   
 });

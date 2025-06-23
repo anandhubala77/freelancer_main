@@ -147,6 +147,28 @@ export const deleteProject = createAsyncThunk(
     }
   }
 );
+// projectSlice.js
+
+export const reportProject = createAsyncThunk(
+  "projects/reportProject",
+  async ({ projectId, reason, token }, { rejectWithValue }) => {
+    try {
+      const res = await axios.post(
+        `/projects/${projectId}/report`,
+        { reason },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
 
 
 // Redux Toolkit Slice

@@ -81,6 +81,54 @@ export const withdrawApplication = createAsyncThunk(
     }
   }
 );
+// --- NEW: reportJobSeeker ---
+export const reportJobSeeker = createAsyncThunk(
+  "applications/reportJobSeeker",
+  async ({ userId, reason, token }, { rejectWithValue }) => {
+    try {
+      const res = await axios.post(
+        `/users/${userId}/report`,
+        { reason },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to report user"
+      );
+    }
+  }
+);
+
+export const submitCompletedWork = createAsyncThunk(
+  "hireRequest/submitCompletedWork",
+  async ({ quotationId, link, message, token }, { rejectWithValue }) => {
+    try {
+      const res = await axios.post(
+        `/work/${quotationId}/submit-work`,
+        { link, message },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Error submitting work"
+      );
+    }
+  }
+);
+
+
+
+
 
 const applicationSlice = createSlice({
   name: "application",

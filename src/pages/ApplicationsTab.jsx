@@ -6,9 +6,10 @@ import {
   selectApplicationsStatus,
   selectApplicationsError,
   updateApplicationStatus,
+  reportJobSeeker, // ✅ NEW
 } from "../store/slices/applicationSlice";
 import { toast, ToastContainer } from "react-toastify";
-import Modal from "../components/Modal"; // Make sure you have a reusable Modal component
+import Modal from "../components/Modal";
 
 const ApplicationsTab = () => {
   const dispatch = useDispatch();
@@ -20,6 +21,8 @@ const ApplicationsTab = () => {
   const error = useSelector(selectApplicationsError);
 
   const [selectedUser, setSelectedUser] = useState(null);
+  const [reportingUser, setReportingUser] = useState(null);
+  const [reportReason, setReportReason] = useState("");
 
   useEffect(() => {
     if (hiringPersonId) {
@@ -38,6 +41,23 @@ const ApplicationsTab = () => {
   const handleViewDetails = (user) => setSelectedUser(user);
   const closeModal = () => setSelectedUser(null);
 
+  const handleReportSubmit = async () => {
+    try {
+      await dispatch(
+        reportJobSeeker({
+          userId: reportingUser._id,
+          reason: reportReason,
+          token: hiringPerson.token,
+        })
+      ).unwrap();
+      toast.success("Reported user successfully");
+      setReportingUser(null);
+      setReportReason("");
+    } catch (err) {
+      toast.error(err || "Failed to report user");
+    }
+  };
+
   return (
     <div>
       {status === "loading" && <p>Loading applications...</p>}
@@ -45,6 +65,7 @@ const ApplicationsTab = () => {
       {status === "succeeded" && applications.length === 0 && (
         <p>No applications submitted yet.</p>
       )}
+
       {status === "succeeded" &&
         applications.map((app) => (
           <div
@@ -59,6 +80,31 @@ const ApplicationsTab = () => {
               <span className="capitalize font-semibold">{app.status}</span>
             </p>
             <p className="mb-2">Proposal: {app.message}</p>
+            {/* {app.submission?.link && (
+              <div className="mt-2 bg-white p-3 border rounded">
+                <p className="font-semibold text-gray-700">
+                  🔗 Submitted Work:
+                </p>
+                <p>
+                  Link:{" "}
+                  <a
+                    href={app.submission.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline"
+                  >
+                    {app.submission.link}
+                  </a>
+                </p>
+                <p className="text-sm mt-1 text-gray-800">
+                  Message: {app.submission.message}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Submitted at:{" "}
+                  {new Date(app.submission.submittedAt).toLocaleString()}
+                </p>
+              </div>
+            )} */}
 
             {app.status === "pending" && (
               <div className="flex gap-2 mb-2">
@@ -77,17 +123,24 @@ const ApplicationsTab = () => {
               </div>
             )}
 
-            {/* More Details Button */}
-            <button
-              onClick={() => handleViewDetails(app.userId)}
-              className="text-blue-600 hover:underline text-sm"
-            >
-              More Details
-            </button>
+            <div className="flex gap-4 text-sm">
+              <button
+                onClick={() => handleViewDetails(app.userId)}
+                className="text-blue-600 hover:underline"
+              >
+                More Details
+              </button>
+              <button
+                onClick={() => setReportingUser(app.userId)}
+                className="text-red-500 hover:underline"
+              >
+                Report Spam
+              </button>
+            </div>
           </div>
         ))}
 
-      {/* Modal to show user details */}
+      {/* Modal for User Details */}
       {selectedUser && (
         <Modal isOpen={true} onClose={closeModal}>
           <div className="p-6">
@@ -102,7 +155,6 @@ const ApplicationsTab = () => {
               <strong>Skills:</strong>{" "}
               {selectedUser.skills?.join(", ") || "N/A"}
             </p>
-
             <p>
               <strong>Experience:</strong>
             </p>
@@ -113,7 +165,7 @@ const ApplicationsTab = () => {
                   <li key={index}>
                     <strong>{exp.title}</strong> at <em>{exp.company}</em>
                     <br />
-                    {exp.startDate} – {exp.endDate}
+                    {exp.startDate} - {exp.endDate}
                     <br />
                     {exp.description}
                   </li>
@@ -122,13 +174,45 @@ const ApplicationsTab = () => {
                 <li>No experience data</li>
               )}
             </ul>
-
             <button
               onClick={closeModal}
               className="mt-4 px-4 py-2 bg-gray-700 text-white rounded"
             >
               Close
             </button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal for Reporting */}
+      {reportingUser && (
+        <Modal isOpen={true} onClose={() => setReportingUser(null)}>
+          <div className="p-6">
+            <h2 className="text-lg font-bold mb-4">Report Job Seeker</h2>
+            <p className="mb-2">
+              Reporting: <strong>{reportingUser.name}</strong>
+            </p>
+            <textarea
+              className="w-full p-2 border rounded mb-4"
+              placeholder="Enter reason for reporting..."
+              rows="4"
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+            ></textarea>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setReportingUser(null)}
+                className="px-4 py-2 bg-gray-300 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleReportSubmit}
+                className="px-4 py-2 bg-red-600 text-white rounded"
+              >
+                Submit Report
+              </button>
+            </div>
           </div>
         </Modal>
       )}

@@ -62,7 +62,7 @@ const Register = () => {
           lastName: "",
           email: "",
           password: "",
-          role: "",   // reset role too
+          role: "",   
         });
 
         navigate("/Login");
