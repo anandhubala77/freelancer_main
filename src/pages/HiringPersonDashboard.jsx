@@ -23,6 +23,8 @@ import {
   clearProjectStatus,
 } from "../store/slices/projectSlice"; // Adjust the import path as necessary
 import CompletedProjects from "./CompletedProjects";
+import SentPayment from "../components/Sentpayment";
+import ActiveApplication from "../components/ActiveApplication";
 
 const HiringPersonDashboard = () => {
   const dispatch = useDispatch();
@@ -185,11 +187,10 @@ const HiringPersonDashboard = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-3 sm:px-4 py-2 sm:py-4 text-sm font-medium ${
-                    activeTab === tab.id
+                  className={`px-3 sm:px-4 py-2 sm:py-4 text-sm font-medium ${activeTab === tab.id
                       ? "border-b-2 border-blue-500 text-blue-600"
                       : "text-gray-500 hover:text-gray-700"
-                  }`}
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -236,53 +237,15 @@ const HiringPersonDashboard = () => {
             </div>
           )}
 
-          {activeTab === "active" && (
-            <div>
-              <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">
-                Active Projects
-              </h2>
-
-              {applications
-                .filter(
-                  (app) => app.status === "approved" && !app.submission?.link
-                )
-                .map((app) => (
-                  <div
-                    key={app._id}
-                    className="bg-gray-50 rounded-lg p-4 mb-4 shadow-md"
-                  >
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      {app.jobId?.title || "No Title"}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-2">
-                      Job Seeker: {app.userId?.name || "Unknown"}
-                    </p>
-                    <p className="text-sm text-gray-600 mb-1">
-                      Status: Approved
-                    </p>
-
-                    <div className="mt-4 flex gap-3">
-                      <button
-                        onClick={() => console.log("View Details", app._id)}
-                        className="bg-gray-600 text-white px-4 py-2 rounded text-sm"
-                      >
-                        View Details
-                      </button>
-                      <button
-                        onClick={() => console.log("Make Payment", app._id)}
-                        className="bg-blue-600 text-white px-4 py-2 rounded text-sm"
-                      >
-                        Make Payment
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-              {applications.filter(
-                (app) => app.status === "approved" && !app.submission?.link
-              ).length === 0 && <p>No active (approved) projects.</p>}
-            </div>
-          )}
+          {activeTab === "active" &&
+            applications?.length > 0 &&
+            applications
+              .filter((app) => app.submission?.link)
+              .map((app) => (
+                <div key={app._id} className="...">
+                  <ActiveApplication />
+                </div>
+              ))}
 
           {activeTab === "completed" &&
             applications?.length > 0 &&
@@ -297,37 +260,13 @@ const HiringPersonDashboard = () => {
           {activeTab === "payments" && (
             <div>
               <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">
-                Payment History
+                payment
               </h2>
-              <div className="space-y-4">
-                {paymentHistory.map((payment, index) => (
-                  <div key={index} className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex flex-col sm:flex-row justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold">Payment #{index + 1}</h3>
-                        <p className="text-sm text-gray-600">
-                          Amount: ${payment.amount}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          Date: {new Date(payment.date).toLocaleDateString()}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          Status: {payment.status}
-                        </p>
-                      </div>
-                      <div className="text-sm text-gray-600 mt-4 sm:mt-0">
-                        Job ID: {payment.jobId}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {paymentHistory.length === 0 && (
-                  <p>No payment history found.</p>
-                )}
-              </div>
+              <SentPayment />
             </div>
           )}
         </div>
+
         {activeTab === "applications" && (
           <div>
             <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">

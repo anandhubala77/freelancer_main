@@ -12,6 +12,7 @@ import { toast, ToastContainer } from "react-toastify";
 import JobSeekerApplication from "./JobseekerApplication";
 import SubmittedWork from "./SubmittedWork"; // ✅ Completed/Submitted Works
 import UnsubmittedWorks from "./UnsubmittedWorks"; // ✅ Newly added
+import ReceivedPayments from "./RecivedPayment";
 
 const JobSeekerDashboard = () => {
   const dispatch = useDispatch();
@@ -91,7 +92,9 @@ const JobSeekerDashboard = () => {
       return <SubmittedWork />;
     }
 
-    return null;
+    if (activeTab === "payments") {
+      return <ReceivedPayments />;
+    }
   };
 
   return (
@@ -132,8 +135,7 @@ const JobSeekerDashboard = () => {
           >
             Applied Jobs
           </button>
-          
-         
+
           <button
             className={`pb-2 px-3 text-sm font-medium ${
               activeTab === "submitted"
@@ -154,6 +156,17 @@ const JobSeekerDashboard = () => {
             onClick={() => setActiveTab("completed")}
           >
             Completed Works
+          </button>
+
+          <button
+            className={`pb-2 px-3 text-sm font-medium ${
+              activeTab === "payments"
+                ? "border-b-2 border-purple-600 text-purple-600"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+            onClick={() => setActiveTab("payments")}
+          >
+            Payment History
           </button>
         </div>
 
