@@ -4,7 +4,7 @@ import AdminSidebar from "../admin/AdminSidebar";
 const AdminRoutes = () => {
   // Retrieve token and role from sessionStorage
   const token = sessionStorage.getItem("token");
-  const user = JSON.parse(sessionStorage.getItem("existingUser"));
+const user = JSON.parse(sessionStorage.getItem("user"));
 
   // Check if the user is authenticated and has the 'admin' role
   if (!token || user?.role !== "admin") {

@@ -1,132 +1,142 @@
-import React from 'react';
-import { MdSearch, MdFilterList, MdSort, MdVisibility, MdDelete, MdCheckCircle, MdCancel } from 'react-icons/md';
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchAllUsers,
+  deleteUser,
+  selectAllUsers,
+} from "../store/slices/adminUserSlice";
+import {
+  MdDelete,
+  MdSearch,
+  MdSort,
+  MdContentCopy,
+} from "react-icons/md";
+import { toast } from "react-toastify";
 
-const ManageProjects = () => {
-  const projectStatus = [
-    { id: 1, name: 'All', count: 87 },
-    { id: 2, name: 'Pending', count: 23 },
-    { id: 3, name: 'Approved', count: 54 },
-    { id: 4, name: 'Rejected', count: 10 },
-  ];
+const ManageUsers = () => {
+  const dispatch = useDispatch();
+  const users = useSelector(selectAllUsers);
+  const [search, setSearch] = useState("");
+  const [sortOrder, setSortOrder] = useState("desc");
 
-  const projects = [
-    {
-      id: 1,
-      title: 'Web Development Project',
-      client: 'John Doe',
-      budget: '$2,500',
-      status: 'Pending',
-      bids: 15,
-      created: '2025-05-01',
-    },
-    {
-      id: 2,
-      title: 'Mobile App Development',
-      client: 'Jane Smith',
-      budget: '$3,200',
-      status: 'Approved',
-      bids: 22,
-      created: '2025-04-28',
-    },
-    // Add more sample projects
-  ];
+  useEffect(() => {
+    dispatch(fetchAllUsers());
+  }, [dispatch]);
+
+  const handleDelete = (id) => {
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      dispatch(deleteUser(id))
+        .unwrap()
+        .then(() => toast.success("User deleted successfully"))
+        .catch(() => toast.error("Failed to delete user"));
+    }
+  };
+
+  const filteredUsers = users
+    .filter(
+      (u) =>
+        u._id?.toLowerCase().includes(search.toLowerCase()) ||
+        u.name?.toLowerCase().includes(search.toLowerCase()) ||
+        u.email?.toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a, b) => {
+      const dateA = new Date(a.createdAt);
+      const dateB = new Date(b.createdAt);
+      return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+    });
+
+  const toggleSort = () => {
+    setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+  };
 
   return (
-    <div className="ml-0 sm:ml-64 p-4 sm:p-6">
-      <h1 className="text-2xl font-bold mb-6">Manage Projects</h1>
+    <div className="ml-0 sm:ml-64 p-4 sm:p-6" style={{ position: "relative", zIndex: 50 }}>
+      <h1 className="text-2xl font-bold mb-6">Manage Users</h1>
 
-      <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
-        <div className="relative flex-1">
+      {/* Search and Sort Controls */}
+      <div className="mb-6 flex flex-col sm:flex-row items-center gap-4">
+        <div className="relative w-full sm:w-1/2">
           <input
             type="text"
-            placeholder="Search projects..."
+            placeholder="Search by ID, name or email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <MdSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <MdSearch className="absolute right-3 top-3 text-gray-400" />
         </div>
-        <button className="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-          <MdFilterList className="inline-block mr-2" />
-          Filter
-        </button>
-        <button className="w-full sm:w-auto px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
-          <MdSort className="inline-block mr-2" />
-          Sort
+        <button
+          onClick={toggleSort}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-2"
+        >
+          <MdSort />
+          Sort by Date {sortOrder === "asc" ? "↑" : "↓"}
         </button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        {projectStatus.map((status) => (
-          <div
-            key={status.id}
-            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-          >
-            <span>{status.name}</span>
-            <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-              {status.count}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="overflow-x-auto">
-          <table className="w-full table-auto">
-            <thead>
-              <tr className="border-b">
-                <th className="py-3 text-left">Project Title</th>
-                <th className="py-3 text-left">Client</th>
-                <th className="py-3 text-left">Budget</th>
-                <th className="py-3 text-left">Status</th>
-                <th className="py-3 text-left">Bids</th>
-                <th className="py-3 text-left">Created</th>
-                <th className="py-3 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {projects.map((project) => (
-                <tr key={project.id} className="border-b">
-                  <td className="py-4">{project.title}</td>
-                  <td className="py-4">{project.client}</td>
-                  <td className="py-4">{project.budget}</td>
-                  <td className="py-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        project.status === 'Pending'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : project.status === 'Approved'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}
+      {/* Users Table */}
+      <div className="bg-white rounded-lg shadow p-4 overflow-x-auto">
+        <table className="min-w-full text-sm">
+          <thead>
+            <tr className="border-b bg-gray-100 text-left">
+              <th className="py-2 px-2">#</th>
+              <th className="py-2 px-2">User ID</th>
+              <th className="py-2 px-2">Name</th>
+              <th className="py-2 px-2">Email</th>
+              <th className="py-2 px-2">Role</th>
+              <th className="py-2 px-2">Registered</th>
+              <th className="py-2 px-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredUsers.map((u, index) => (
+              <tr key={u._id} className="border-b hover:bg-gray-50">
+                <td className="py-3 px-2">{index + 1}</td>
+                <td className="py-3 px-2 text-xs text-gray-700 break-all select-text">
+                  <div className="flex items-center gap-2">
+                    <span>{u._id}</span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(u._id);
+                        toast.success("User ID copied!");
+                      }}
+                      className="text-blue-500 hover:text-blue-700"
                     >
-                      {project.status}
-                    </span>
-                  </td>
-                  <td className="py-4">{project.bids}</td>
-                  <td className="py-4">{project.created}</td>
-                  <td className="py-4">
-                    <div className="flex items-center gap-2">
-                      <button className="text-green-500 hover:text-green-600">
-                        <MdCheckCircle className="w-5 h-5" />
-                      </button>
-                      <button className="text-red-500 hover:text-red-600">
-                        <MdCancel className="w-5 h-5" />
-                      </button>
-                      <button className="text-blue-500 hover:text-blue-600">
-                        <MdVisibility className="w-5 h-5" />
-                      </button>
-                      <button className="text-gray-500 hover:text-gray-600">
-                        <MdDelete className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                      <MdContentCopy size={16} />
+                    </button>
+                  </div>
+                </td>
+                <td className="py-3 px-2">
+                  {u.name} {u.lastName}
+                </td>
+                <td className="py-3 px-2">{u.email}</td>
+                <td className="py-3 px-2 capitalize">{u.role}</td>
+                <td className="py-3 px-2">
+                  {new Date(u.createdAt).toLocaleDateString()}
+                </td>
+                <td className="py-3 px-2">
+                  <button
+                    onClick={() => handleDelete(u._id)}
+                    className="text-red-500 hover:text-red-600"
+                    title="Delete user"
+                  >
+                    <MdDelete size={20} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {filteredUsers.length === 0 && (
+              <tr>
+                <td colSpan="7" className="py-4 text-center text-gray-500">
+                  No users found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
 };
 
-export default ManageProjects;
+export default ManageUsers;

@@ -1,4 +1,4 @@
-import { configureStore, combineReducers } from '@reduxjs/toolkit';
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import {
   persistStore,
   persistReducer,
@@ -8,15 +8,17 @@ import {
   PERSIST,
   PURGE,
   REGISTER,
-} from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
-import authReducer from './slices/authSlice';
-import projectsReducer from './slices/projectSlice';
-import hireSlice from './slices/hireSlice'
-import jobReducer from "./slices/jobSlice"; 
-import quotationReducer from './slices/quotationSlice';
-import applicationReducer from './slices/applicationSlice';
-import paymentReducer from './slices/paymentSlice';
+} from "redux-persist";
+import storage from "redux-persist/lib/storage";
+import authReducer from "./slices/authSlice";
+import projectsReducer from "./slices/projectSlice";
+import hireSlice from "./slices/hireSlice";
+import jobReducer from "./slices/jobSlice";
+import quotationReducer from "./slices/quotationSlice";
+import applicationReducer from "./slices/applicationSlice";
+import paymentReducer from "./slices/paymentSlice";
+import adminProjectsReducer from "./slices/adminProjectSlice";
+import adminUsersReducer from "./slices/adminUserSlice";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -26,14 +28,14 @@ const rootReducer = combineReducers({
   quotation: quotationReducer,
   application: applicationReducer,
   payment: paymentReducer,
-
-  
+  adminProjects: adminProjectsReducer,
+  adminUsers: adminUsersReducer,
 });
 
 const persistConfig = {
-  key: 'root',
+  key: "root",
   storage,
-  whitelist: ['auth'], // only persist the auth slice
+  whitelist: ["auth"], // only persist the auth slice
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
