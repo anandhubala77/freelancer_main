@@ -7,9 +7,7 @@ import {
   getAdminProjectsStatus,
   getAdminProjectsError,
 } from "../store/slices/adminProjectSlice";
-
 import { MdSearch, MdFilterList, MdSort, MdDelete } from "react-icons/md";
-
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -24,13 +22,11 @@ const ManageProjects = () => {
     dispatch(fetchAllProjects());
   }, [dispatch]);
 
-  // Ensure projects is an array before filtering
   const filtered = (projects || []).filter((p) =>
     p.title.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleDelete = (id) => {
-    console.log("Delete clicked:", id);
     if (window.confirm("Are you sure you want to delete this project?")) {
       dispatch(adminDeleteProject(id))
         .unwrap()
@@ -38,31 +34,28 @@ const ManageProjects = () => {
         .catch(() => toast.error("Failed to delete project"));
     }
   };
-  
-
-  console.log("Projects from Redux:", projects);
 
   return (
-    <div className="ml-0 sm:ml-64 p-4 sm:p-6" style={{ position: "relative", zIndex: 50 }}>
-      <h1 className="text-2xl font-bold mb-6">Manage Projects</h1>
+    <div className="w-full px-2 py-4 sm:px-4 md:px-6 lg:px-8 min-h-screen">
+      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Manage Projects</h1>
 
       {/* Search Bar and Buttons */}
-      <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
-        <div className="relative flex-1 w-full sm:w-auto">
+      <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-6">
+        <div className="relative w-full sm:w-auto flex-1">
           <input
             type="text"
             placeholder="Search projects..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full sm:w-[300px] px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <MdSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
         </div>
-        <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+        <button className="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center justify-center">
           <MdFilterList className="inline-block mr-1" />
           Filter
         </button>
-        <button className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+        <button className="w-full sm:w-auto px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 flex items-center justify-center">
           <MdSort className="inline-block mr-1" />
           Sort
         </button>
@@ -74,8 +67,8 @@ const ManageProjects = () => {
 
       {/* Table */}
       {status === "succeeded" && (
-        <div className="bg-white rounded-lg shadow p-4 overflow-x-auto">
-          <table className="min-w-max w-full table-auto text-sm">
+        <div className="bg-white rounded-lg shadow p-2 sm:p-4 overflow-x-auto">
+          <table className="min-w-[700px] w-full text-sm text-left">
             <thead>
               <tr className="border-b bg-gray-100">
                 <th className="py-2 px-2 text-left">Title</th>
@@ -89,21 +82,23 @@ const ManageProjects = () => {
             <tbody>
               {filtered.map((proj) => (
                 <tr key={proj._id} className="border-b hover:bg-gray-50">
-                  <td className="py-3 px-2">{proj.title}</td>
+                  <td className="py-3 px-2 break-words max-w-[180px]">{proj.title}</td>
                   <td className="py-3 px-2">₹{proj.budget}</td>
                   <td className="py-3 px-2 capitalize">{proj.status}</td>
                   <td className="py-3 px-2">{proj.reports?.length || 0}</td>
-                  <td className="py-3 px-2">
+                  <td className="py-3 px-2 break-words max-w-[120px]">
                     {proj.userId?.name} {proj.userId?.lastName}
                   </td>
                   <td className="py-3 px-2">
-                    <button
-                      onClick={() => handleDelete(proj._id)}
-                      className="text-red-500 hover:text-red-600 flex items-center gap-1"
-                      style={{ position: "relative", zIndex: 50 }}
-                    >
-                      <MdDelete size={20} />
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => handleDelete(proj._id)}
+                        className="text-red-500 hover:text-red-600 flex items-center gap-1"
+                        aria-label="Delete"
+                      >
+                        <MdDelete size={20} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -50,11 +50,11 @@ const ManageUsers = () => {
   };
 
   return (
-    <div className="ml-0 sm:ml-64 p-4 sm:p-6" style={{ position: "relative", zIndex: 50 }}>
-      <h1 className="text-2xl font-bold mb-6">Manage Users</h1>
+    <div className="w-full px-2 py-4 sm:px-4 md:px-6 lg:px-8 min-h-screen">
+      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Manage Users</h1>
 
       {/* Search and Sort Controls */}
-      <div className="mb-6 flex flex-col sm:flex-row items-center gap-4">
+      <div className="mb-6 flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
         <div className="relative w-full sm:w-1/2">
           <input
             type="text"
@@ -63,11 +63,11 @@ const ManageUsers = () => {
             onChange={(e) => setSearch(e.target.value)}
             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <MdSearch className="absolute right-3 top-3 text-gray-400" />
+          <MdSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
         </div>
         <button
           onClick={toggleSort}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-2"
+          className="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-2 justify-center"
         >
           <MdSort />
           Sort by Date {sortOrder === "asc" ? "↑" : "↓"}
@@ -75,8 +75,8 @@ const ManageUsers = () => {
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-lg shadow p-4 overflow-x-auto">
-        <table className="min-w-full text-sm">
+      <div className="bg-white rounded-lg shadow p-2 sm:p-4 overflow-x-auto">
+        <table className="min-w-[700px] w-full text-sm">
           <thead>
             <tr className="border-b bg-gray-100 text-left">
               <th className="py-2 px-2">#</th>
@@ -106,10 +106,10 @@ const ManageUsers = () => {
                     </button>
                   </div>
                 </td>
-                <td className="py-3 px-2">
+                <td className="py-3 px-2 break-words max-w-[120px]">
                   {u.name} {u.lastName}
                 </td>
-                <td className="py-3 px-2">{u.email}</td>
+                <td className="py-3 px-2 break-all max-w-[160px]">{u.email}</td>
                 <td className="py-3 px-2 capitalize">{u.role}</td>
                 <td className="py-3 px-2">
                   {new Date(u.createdAt).toLocaleDateString()}

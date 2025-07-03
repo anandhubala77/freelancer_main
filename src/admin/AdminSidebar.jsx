@@ -28,7 +28,7 @@ const AdminSidebar = () => {
   ];
 
   return (
-    <div className="fixed inset-0">
+    <div className="flex">
       {/* Mobile Hamburger Button */}
       <div className="fixed top-4 left-4 z-50 lg:hidden">
         <button onClick={toggleSidebar} className="text-white p-2 bg-gray-800 rounded-lg">
@@ -38,9 +38,9 @@ const AdminSidebar = () => {
 
       {/* Sidebar */}
       <div
-        className={`fixed w-60 bg-gray-800 h-full top-0 left-0 transform transition-all duration-300 ease-in-out z-40 ${
+        className={`w-60 bg-gray-800 h-full transform transition-all duration-300 ease-in-out z-40 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 lg:w-64 lg:static lg:translate-x-0`}
+        } lg:translate-x-0 lg:w-64 lg:static`}
       >
         <div className="p-4">
           <h2 className="text-lg md:text-xl font-bold text-white mb-4">Admin Panel</h2>
@@ -72,7 +72,7 @@ const AdminSidebar = () => {
       {isOpen && (
         <div
           onClick={toggleSidebar}
-          className="fixed inset-0 bg-black opacity-50 z-40 lg:hidden"
+          className="absolute inset-0 bg-black opacity-50 z-40 lg:hidden"
         ></div>
       )}
     </div>

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Button from "../components/Button";
 import Modal from "../components/Modal";
 import { useDispatch, useSelector } from "react-redux";
-import { reportProject } from "../store/slices/projectSlice"; // Ensure this thunk exists
+import { reportProject } from "../store/slices/projectSlice";
 import { toast } from "react-toastify";
 
 const JobList = ({ jobs, onApplyClick }) => {
@@ -45,30 +45,60 @@ const JobList = ({ jobs, onApplyClick }) => {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {jobs.map((job) => (
           <div
             key={job._id}
-            className="bg-white rounded-lg shadow p-6 flex flex-col justify-between"
+            className="bg-white rounded-lg shadow p-4 flex flex-col justify-between"
           >
+            {job.image && (
+              <img
+                src={job.image}
+                alt={job.title}
+                className="w-full h-40 object-cover rounded mb-3"
+              />
+            )}
+
             <div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">
-                {job.title}
-              </h3>
-              <p className="text-gray-600 mb-2">{job.description}</p>
-              <p className="text-sm text-gray-500">Budget: ₹{job.budget}</p>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">{job.title}</h3>
+              <p className="text-gray-600 mb-2 line-clamp-3">{job.description}</p>
+
+              <p className="text-sm text-gray-700">
+                <strong>Budget:</strong> ₹{job.budget}
+              </p>
+              <p className="text-sm text-gray-700">
+                <strong>Timeline:</strong> {job.timeline || "Not specified"}
+              </p>
+              <p className="text-sm text-gray-700">
+                <strong>Location:</strong> {job.location || "Remote"}
+              </p>
+              <p className="text-sm text-gray-700">
+                <strong>Skills:</strong>{" "}
+                {Array.isArray(job.skillsRequired)
+                  ? job.skillsRequired.join(", ")
+                  : job.skillsRequired}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Posted on:{" "}
+                {job.createdAt
+                  ? new Date(job.createdAt).toLocaleDateString()
+                  : "Unknown"}
+              </p>
             </div>
 
-            <div className="mt-4 flex justify-between items-center">
-              <Button variant="primary" onClick={() => onApplyClick(job)}>
+            <div className="mt-4 flex flex-col sm:flex-row gap-3">
+              <Button
+                onClick={() => onApplyClick(job)}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              >
                 Apply
               </Button>
-              <button
+              <Button
                 onClick={() => handleReportClick(job)}
-                className="text-red-500 text-sm underline hover:text-red-700"
+                className="w-full bg-blue-100 text-blue-700 hover:bg-blue-200"
               >
                 Report
-              </button>
+              </Button>
             </div>
           </div>
         ))}
@@ -91,9 +121,12 @@ const JobList = ({ jobs, onApplyClick }) => {
             <Button variant="secondary" onClick={() => setReportModalOpen(false)}>
               Cancel
             </Button>
-            <button variant="danger" onClick={handleSubmitReport}>
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={handleSubmitReport}
+            >
               Submit Report
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>

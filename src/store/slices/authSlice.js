@@ -4,6 +4,8 @@ import { base_url } from "../../services/base_url";
 
 axios.defaults.baseURL = base_url;
 
+
+
 // Async thunk to login user
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
