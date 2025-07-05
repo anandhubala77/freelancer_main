@@ -12,6 +12,9 @@ import HiringPersonDashboard from './pages/HiringPersonDashboard';
 import JobSeekerDashboard from './pages/JobSeekerDashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import UpdatePassword from './components/Updatepassword';
+import HiringUpdateProfile from  './pages/HiringUpdateProfile'
+
 
 
 
@@ -21,6 +24,7 @@ import { useDispatch } from 'react-redux';
 import { initializeAuth } from './store/slices/authSlice';
 import { ViewProfile } from './pages/ViewProfile';
 import { UpdateProfile } from './pages/UpdateProfile';
+import AdminProfile from './admin/AdminProfile';
 
 function App() {
 
@@ -44,7 +48,7 @@ function App() {
           <Route path="users" element={<ManageUsers />} />
           <Route path="payments" element={<PaymentLogs />} />
           <Route path="fraud" element={<FraudReports />} />
-          <Route path="queries" element={<ResolveQueries />} />
+          <Route path="profile" element={<AdminProfile />} />
         </Route>
       </Route>
 
@@ -53,6 +57,9 @@ function App() {
         <Route path="jobseeker" element={<JobSeekerDashboard />} />
         <Route path="profile/view" element={<ViewProfile />} />
         <Route path="profile/edit" element={<UpdateProfile />} />  
+        <Route path="update-password" element={<UpdatePassword />} />
+        <Route path='updateHiringprofile' element={<HiringUpdateProfile/>}/> 
+        <Route path="*" element={<h1>Page Not Found</h1>} />
       </Route>
     </Routes>
   );

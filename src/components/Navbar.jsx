@@ -11,7 +11,7 @@ import { logout } from "../store/slices/authSlice";
 const Navbar = () => {
   const [toggleMenu, setToggleMenu] = useState(false);
   const [activeMobileMenu, setActiveMobileMenu] = useState(null);
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false); // new dropdown state
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
   const { user } = useSelector((state) => state.auth);
   const userRole = user?.role;
@@ -29,17 +29,36 @@ const Navbar = () => {
     navigate("/Login");
   };
 
+  const getProfileImage = () => {
+    if (user?.profileimg) {
+      if (
+        user.profileimg.startsWith("http") ||
+        user.profileimg.startsWith("data:image")
+      ) {
+        return user.profileimg;
+      } else {
+        return `${
+          import.meta.env.VITE_BACKEND_URL || "http://localhost:5000"
+        }/${user.profileimg}`;
+      }
+    }
+    return "https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg";
+  };
+
   return (
     <nav className="bg-white shadow-md fixed w-full z-50 top-0">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center py-4">
-          {/* Left: Logo + Desktop Navigation */}
-          <div className="flex items-center align-center gap-8 ">
-            <Link to="/" className="flex items-center gap-2 font-bold text-gray-700">
+          {/* Left */}
+          <div className="flex items-center gap-8">
+            <Link
+              to="/"
+              className="flex items-center gap-2 font-bold text-gray-700"
+            >
               <Logo />
             </Link>
 
-            {/* Desktop Menu */}
+            {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-6">
               <input
                 type="text"
@@ -47,7 +66,6 @@ const Navbar = () => {
                 className="border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:border-blue-500 w-56 lg:w-64"
               />
 
-              {/* Find Work Dropdown */}
               {userRole === "jobseeker" && (
                 <div className="relative group">
                   <button className="text-gray-700 flex items-center gap-1">
@@ -67,7 +85,6 @@ const Navbar = () => {
                 </div>
               )}
 
-              {/* Hire Freelancers Dropdown */}
               {userRole === "hiringperson" && (
                 <div className="relative group">
                   <button className="text-gray-700 flex items-center gap-1">
@@ -89,47 +106,32 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Right: Auth Buttons + Mobile Icon */}
+          {/* Right */}
           <div className="flex items-center gap-4">
             <div className="hidden lg:flex items-center gap-4">
-              {user ? (
-                <button
-                  className="text-gray-700 font-medium hover:bg-gray-200 py-2 px-5 rounded-full"
-                  onClick={handleLogout}
-                >
-                  Sign out
-                </button>
-              ) : (
+              {!user ? (
                 <Link to="/register">
                   <button className="text-gray-700 font-medium hover:bg-gray-200 py-2 px-5 rounded-full">
                     Sign up
                   </button>
                 </Link>
-              )}
-
-              {userRole === "hiringperson" && (
-                <div>
-                  <Link to="/post-project">
-                    <button className="bg-pink-500 text-white font-semibold py-2 px-5 rounded-full hover:bg-pink-600 transition">
-                      Post a Project
-                    </button>
-                  </Link>
-                </div>
-              )}
-
-              {userRole === "jobseeker" && (
+              ) : (
                 <div className="relative">
                   <button
                     onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                     className="flex items-center gap-1 focus:outline-none"
                   >
-                    {/* Avatar Image */}
                     <img
-                      src={user?.avatarUrl || "https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg?semt=ais_hybrid&w=740"} // Replace with dynamic avatar URL
+                      src={getProfileImage()}
                       alt="User Avatar"
                       className="h-10 w-10 rounded-full object-cover"
                     />
-                    <FiChevronDown className={`mt-1 transition-transform ${profileDropdownOpen ? 'rotate-180' : ''}`} />
+
+                    <FiChevronDown
+                      className={`mt-1 transition-transform ${
+                        profileDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
                   </button>
 
                   {profileDropdownOpen && (
@@ -137,17 +139,62 @@ const Navbar = () => {
                       <Link
                         to="/user/profile/view"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        onClick={() => setProfileDropdownOpen(false)} // Close dropdown on click
+                        onClick={() => setProfileDropdownOpen(false)}
                       >
                         View Profile
                       </Link>
+
+                      {userRole === "jobseeker" && (
+                        <>
+                          <Link
+                            to="/user/profile/edit"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            onClick={() => setProfileDropdownOpen(false)}
+                          >
+                            Update Profile
+                          </Link>
+                          <Link
+                            to="/user/update-password"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            onClick={() => setProfileDropdownOpen(false)}
+                          >
+                            Update Password
+                          </Link>
+                        </>
+                      )}
+
+                      {userRole === "hiringperson" && (
+                        <>
+                          <Link
+                            to="/user/updateHiringprofile"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            onClick={() => setProfileDropdownOpen(false)}
+                          >
+                            Update Profile
+                          </Link>
+                          <Link
+                            to="/user/update-password"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            onClick={() => setProfileDropdownOpen(false)}
+                          >
+                            Update Password
+                          </Link>
+                        </>
+                      )}
+
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                      >
+                        Logout
+                      </button>
                     </div>
                   )}
                 </div>
               )}
             </div>
 
-            {/* Mobile Menu Icon */}
+            {/* Mobile Icon */}
             <div className="lg:hidden">
               <button onClick={() => setToggleMenu(!toggleMenu)}>
                 <HiBars3BottomLeft className="h-6 w-6" />
@@ -166,7 +213,6 @@ const Navbar = () => {
         }`}
       >
         <div className="flex flex-col gap-6 font-semibold">
-          {/* Mobile Find Work Dropdown */}
           {userRole === "jobseeker" && (
             <div>
               <button
@@ -191,7 +237,6 @@ const Navbar = () => {
             </div>
           )}
 
-          {/* Mobile Hire Freelancers Dropdown */}
           {userRole === "hiringperson" && (
             <div>
               <button
@@ -211,29 +256,6 @@ const Navbar = () => {
                       {item.title}
                     </a>
                   ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Mobile Profile Dropdown */}
-          {userRole === "jobseeker" && (
-            <div>
-              <button
-                onClick={() => handleMobileMenuToggle("profile")}
-                className="w-full text-left py-2 text-gray-700 flex items-center justify-between"
-              >
-                Profile <FiChevronDown />
-              </button>
-              {activeMobileMenu === "profile" && (
-                <div className="pl-4">
-                  <Link
-                    to="/profile"
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    onClick={() => setToggleMenu(false)} // Close mobile menu on click
-                  >
-                    View Profile
-                  </Link>
                 </div>
               )}
             </div>

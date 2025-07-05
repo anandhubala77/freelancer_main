@@ -158,7 +158,7 @@ const JobSeekerDashboard = () => {
             Completed Works
           </button>
 
-          <button
+          <Button
             className={`pb-2 px-3 text-sm font-medium ${
               activeTab === "payments"
                 ? "border-b-2 border-purple-600 text-purple-600"
@@ -167,7 +167,7 @@ const JobSeekerDashboard = () => {
             onClick={() => setActiveTab("payments")}
           >
             Payment History
-          </button>
+          </Button>
         </div>
 
         {/* Tab Content */}

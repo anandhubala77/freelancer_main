@@ -1,5 +1,3 @@
-// src/pages/Login.jsx
-
 import React, { useState, useEffect } from "react";
 import Logo from "../components/Logo";
 import { ToastContainer, toast } from "react-toastify";
@@ -8,7 +6,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../store/slices/authSlice";
 
-// Reusable SVG Icons
+// Reusable Icons
 const GoogleIcon = () => (
   <svg className="w-5 h-5 mr-2" viewBox="0 0 48 48">
     <path fill="#EA4335" d="M24 9.5c3.21 0 5.99 1.1 8.03 3.03l6.36-6.36C34.04 2.86 29.63 1 24 1 14.32 1 6.36 6.7 3.18 15.18l7.86 6.1C12.25 14.68 17.68 9.5 24 9.5z" />
@@ -28,29 +26,52 @@ const FacebookIcon = () => (
 function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [userData, setUserData] = useState({ email: "", password: "" });
   const { loading, error, user } = useSelector((state) => state.auth);
+  const [hasJustLoggedIn, setHasJustLoggedIn] = useState(false);
+
+  const [userData, setUserData] = useState({ email: "", password: "" });
 
   const handleInputChange = (e) => {
     setUserData({ ...userData, [e.target.name]: e.target.value });
   };
 
-  const handleLogin = (e) => {
-    e.preventDefault(); 
+  const validateInputs = () => {
     const { email, password } = userData;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!email || !password) {
       toast.warning("Please fill in all fields");
-      return;
+      return false;
     }
 
-    dispatch(loginUser(userData));
+    if (!emailRegex.test(email)) {
+      toast.warning("Please enter a valid email");
+      return false;
+    }
+
+    if (password.length < 8) {
+      toast.warning("Password must be at least 8 characters");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+
+    if (!validateInputs()) return;
+
+    dispatch(loginUser(userData)).then((result) => {
+      if (loginUser.fulfilled.match(result)) {
+        setHasJustLoggedIn(true);
+      }
+    });
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && hasJustLoggedIn) {
       toast.success("Login successful");
-
       setTimeout(() => {
         switch (user.role) {
           case "admin":
@@ -65,31 +86,30 @@ function Login() {
           default:
             toast.error("Unknown user role");
             navigate("/");
-            break;
         }
-      }, 1000); // ✅ optional delay for toast
+      }, 1000);
     }
+  }, [user, hasJustLoggedIn, navigate]);
 
-    if (error) {
-      toast.error(error);
-    }
-  }, [user, error, navigate]);
+  useEffect(() => {
+    if (error) toast.error(error);
+  }, [error]);
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 font-sans">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+      <ToastContainer position="top-right" autoClose={3000} />
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <div className="mb-6 flex flex-col items-center justify-center text-center">
+        <div className="mb-6 flex flex-col items-center text-center">
           <Logo />
           <h2 className="text-xl font-semibold text-gray-700 mt-3">Sign in</h2>
         </div>
 
         <div className="space-y-3 mb-6">
-          <button className="w-full flex items-center justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+          <button className="w-full flex items-center justify-center py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
             <GoogleIcon />
             Continue with Google
           </button>
-          <button className="w-full flex items-center justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+          <button className="w-full flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
             <FacebookIcon />
             Continue with Facebook
           </button>
@@ -108,11 +128,11 @@ function Login() {
           <input
             type="text"
             name="email"
-            placeholder="Email or Username"
+            placeholder="Email"
             value={userData.email}
             autoComplete="email"
             onChange={handleInputChange}
-            className="appearance-none rounded-md w-full px-3 py-2 border border-gray-300 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+            className="rounded-md w-full px-3 py-2 border border-gray-300 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
           />
 
           <input
@@ -120,32 +140,30 @@ function Login() {
             name="password"
             placeholder="Password"
             value={userData.password}
-            onChange={handleInputChange}
             autoComplete="current-password"
-            className="appearance-none rounded-md w-full px-3 py-2 border border-gray-300 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+            onChange={handleInputChange}
+            className="rounded-md w-full px-3 py-2 border border-gray-300 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
           />
 
           <div className="flex items-center justify-between text-sm">
             <label className="flex items-center">
-              <input type="checkbox" className="h-4 w-4 text-indigo-600 rounded border-gray-300" />
+              <input type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300" />
               <span className="ml-2 text-gray-900">Remember me</span>
             </label>
-            <Link to="/forgot-password" className="text-indigo-600 hover:text-indigo-500">
-              Forgot Password?
+            <Link to="/Register" className="text-indigo-600 hover:text-indigo-500">
+             New User? Regitser 
             </Link>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md text-white text-sm font-medium ${
+            className={`w-full flex justify-center py-2 px-4 rounded-md text-white text-sm font-medium ${
               loading ? "bg-blue-300 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
             {loading ? "Logging in..." : "Log in"}
           </button>
-
-          {error && <p className="text-sm text-red-600 mt-2 text-center">{error}</p>}
         </form>
       </div>
     </div>

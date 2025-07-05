@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import { useDispatch } from "react-redux";
 import {
   FaHome,
   FaUsers,
@@ -8,11 +10,14 @@ import {
   FaExclamationCircle,
   FaComments,
   FaSignOutAlt as FaLogout,
-  FaBars as FaHamburger, // Changed to FaBars for hamburger icon
+  FaBars as FaHamburger,
 } from 'react-icons/fa';
+import { logout } from "../store/slices/authSlice";
 
 const AdminSidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -24,8 +29,14 @@ const AdminSidebar = () => {
     { icon: FaUsers, label: 'Manage Users', path: '/admin/users' },
     { icon: FaCreditCard, label: 'Payment Logs', path: '/admin/payments' },
     { icon: FaExclamationCircle, label: 'Fraud Reports', path: '/admin/fraud' },
-    { icon: FaComments, label: 'Resolve Queries', path: '/admin/queries' },
+    { icon: FaComments, label: 'Profile', path: '/admin/profile' },
   ];
+
+  const handleLogout = () => {
+    dispatch(logout());
+    toast.success("Logout successful");
+    navigate("/login"); // Make sure this matches your routing
+  };
 
   return (
     <div className="flex">
@@ -42,9 +53,9 @@ const AdminSidebar = () => {
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } lg:translate-x-0 lg:w-64 lg:static`}
       >
-        <div className="p-4">
+        <div className="p-4 flex flex-col h-full">
           <h2 className="text-lg md:text-xl font-bold text-white mb-4">Admin Panel</h2>
-          <nav className="space-y-1">
+          <nav className="space-y-1 flex-grow">
             {menuItems.map((item, index) => (
               <Link
                 key={index}
@@ -56,25 +67,27 @@ const AdminSidebar = () => {
               </Link>
             ))}
           </nav>
-          <div className="mt-auto p-4">
-            <Link
-              to="/admin/logout"
-              className="flex items-center px-3 md:px-4 py-2 md:py-3 text-sm md:text-base text-red-400 hover:bg-gray-700 hover:text-red-500 transition-colors rounded-lg"
+          <div className="mt-auto">
+            <button
+              onClick={handleLogout}
+              className="flex items-center w-full px-3 md:px-4 py-2 md:py-3 text-sm md:text-base text-red-400 hover:bg-gray-700 hover:text-red-500 transition-colors rounded-lg"
             >
               <FaLogout className="w-4 md:w-5 h-4 md:h-5 mr-2 md:mr-3" />
               Logout
-            </Link>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Overlay for mobile screens when the sidebar is open */}
+      {/* Overlay */}
       {isOpen && (
         <div
           onClick={toggleSidebar}
-          className="absolute inset-0 bg-black opacity-50 z-40 lg:hidden"
+          className="absolute inset-0 bg-black opacity-50 z-30 lg:hidden"
         ></div>
       )}
+
+      <ToastContainer />
     </div>
   );
 };
