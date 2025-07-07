@@ -1,5 +1,5 @@
 // CompletedProjects.jsx
-import React from "react";
+import React, { useState } from "react";
 import loadRazorpayScript from "../utils/loadRazorpayScript";
 import { useSelector, useDispatch } from "react-redux";
 import { selectAllApplications } from "../store/slices/applicationSlice";
@@ -9,13 +9,15 @@ import {
 } from "../store/slices/paymentSlice";
 
 const CompletedProjects = () => {
+  const [paidApplications, setPaidApplications] = useState([]);
   const dispatch = useDispatch();
   const applications = useSelector(selectAllApplications);
-  const { user } = useSelector((state) => state.auth); // Hiring person
+  const { user } = useSelector((state) => state.auth);
+  const { sentPayments } = useSelector((state) => state.payment);
 
   const handlePay = async (app) => {
     console.log("Sending payment request with:", {
-      amount: app.jobId?.budget,
+      amount: app.bidAmount,
       jobId: app.jobId?._id,
       paidTo: app.userId?._id,
     });
@@ -26,7 +28,7 @@ const CompletedProjects = () => {
     try {
       const res = await dispatch(
         createPaymentOrder({
-          amount: app.jobId?.budget || 100,
+          amount: app.bidAmount || 100, // Use actual bid amount
           jobId: app.jobId?._id,
           paidTo: app.userId?._id,
         })
@@ -39,7 +41,7 @@ const CompletedProjects = () => {
       const data = res.payload;
 
       const options = {
-        key: "rzp_test_HnpMhDOhL0dI1d", // ✅ Updated with your actual Razorpay test key
+        key: "rzp_test_HnpMhDOhL0dI1d",
         amount: data.amount,
         currency: data.currency,
         name: "Freelancer Project Payment",
@@ -57,6 +59,7 @@ const CompletedProjects = () => {
               paidTo: app.userId?._id,
             })
           );
+          setPaidApplications((prev) => [...prev, app._id]); // ✅ Mark as paid
           alert("Payment Successful & Stored!");
         },
         prefill: {
@@ -125,12 +128,21 @@ const CompletedProjects = () => {
               >
                 Request Correction
               </button>
-              <button
-                onClick={() => handlePay(app)}
-                className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
-              >
-                Pay
-              </button>
+              {sentPayments.some((p) => p.quotationId === app._id) ? (
+                <button
+                  disabled
+                  className="bg-green-500 text-white px-3 py-1 rounded text-sm cursor-not-allowed"
+                >
+                  Paid
+                </button>
+              ) : (
+                <button
+                  onClick={() => handlePay(app)}
+                  className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                >
+                  Pay
+                </button>
+              )}
             </div>
           </div>
         ))}
