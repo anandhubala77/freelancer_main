@@ -3,25 +3,34 @@ import { QuotationForm } from "../components/QuotationForm";
 import Modal from "../components/Modal";
 import Button from "../components/Button";
 import UserLayout from "../layout/UserLayout";
-import { UpdateProfile } from "./UpdateProfile";
+import  UpdateProfile  from "./UpdateProfile";
 import { useDispatch, useSelector } from "react-redux";
 import JobList from "./JobList";
 import { fetchJobs } from "../store/slices/jobSlice";
 import { submitQuotation } from "../store/slices/quotationSlice";
 import { toast, ToastContainer } from "react-toastify";
 import JobSeekerApplication from "./JobseekerApplication";
-import SubmittedWork from "./SubmittedWork"; // ✅ Completed/Submitted Works
-import UnsubmittedWorks from "./UnsubmittedWorks"; // ✅ Newly added
+import SubmittedWork from "./SubmittedWork";
+import UnsubmittedWorks from "./UnsubmittedWorks";
 import ReceivedPayments from "./RecivedPayment";
+import { useNavigate } from "react-router-dom";
+import { logout } from "../store/slices/authSlice";
 
 const JobSeekerDashboard = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { list: jobs, loading, error } = useSelector((state) => state.jobs);
   const { user } = useSelector((state) => state.auth);
 
   const [selectedJob, setSelectedJob] = useState(null);
   const [showUpdateProfileModal, setShowUpdateProfileModal] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [activeTab, setActiveTab] = useState("available");
+
+  // Search and Sort State
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("date"); // "date" or "price"
+  const [sortOrder, setSortOrder] = useState("desc"); // "asc" or "desc"
 
   useEffect(() => {
     if (user?.role === "jobseeker") {
@@ -51,70 +60,164 @@ const JobSeekerDashboard = () => {
 
   const handleOpenUpdateProfileModal = () => {
     setShowUpdateProfileModal(true);
+    setShowMobileMenu(false);
   };
 
   const handleCloseUpdateProfileModal = () => {
     setShowUpdateProfileModal(false);
   };
 
-  // --- Tab Content Renderer ---
+  const handleLogout = () => {
+    dispatch(logout());
+    toast.success("Logout successful");
+    navigate("/login");
+    setShowMobileMenu(false);
+  };
+
+  // Tab Content Renderer
   const renderTabContent = () => {
     if (activeTab === "available") {
-      if (loading) return <p className="text-gray-600">Loading jobs...</p>;
-      if (error) return <p className="text-red-600">Error: {error}</p>;
+      if (loading)
+        return (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+            <span className="ml-4 text-blue-600 font-medium">Loading jobs...</span>
+          </div>
+        );
+      if (error)
+        return (
+          <div className="flex justify-center items-center py-12">
+            <span className="text-red-600 font-medium">{error}</span>
+          </div>
+        );
+
+      // Filter and Sort
+      let filteredJobs = jobs.filter(
+        (job) =>
+          job.title?.toLowerCase().includes(search.toLowerCase()) ||
+          job.skills?.some((skill) =>
+            skill.toLowerCase().includes(search.toLowerCase())
+          ) ||
+          job.location?.toLowerCase().includes(search.toLowerCase())
+      );
+
+      filteredJobs = filteredJobs.sort((a, b) => {
+        if (sortBy === "date") {
+          const dateA = new Date(a.createdAt);
+          const dateB = new Date(b.createdAt);
+          return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+        } else if (sortBy === "price") {
+          return sortOrder === "asc"
+            ? a.budget - b.budget
+            : b.budget - a.budget;
+        }
+        return 0;
+      });
 
       return (
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
             Available Jobs
           </h2>
-          <JobList jobs={jobs} onApplyClick={setSelectedJob} />
+          {/* Search and Sort Controls */}
+          <div className="flex flex-col md:flex-row gap-3 mb-6">
+            <div className="flex flex-1 min-w-0">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by project name, skill, or location..."
+                className="w-full px-4 py-2 border border-blue-200 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              />
+              <button
+                onClick={() => {}}
+                className="px-4 py-2 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 transition text-sm"
+              >
+                Search
+              </button>
+            </div>
+            <div className="flex gap-2 items-center">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-4 py-2 rounded-lg border border-blue-200 bg-white text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                <option value="date">Sort by Date</option>
+                <option value="price">Sort by Amount</option>
+              </select>
+              <button
+                onClick={() =>
+                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                }
+                className="px-3 py-2 rounded-lg border border-blue-200 bg-white text-blue-700 hover:bg-blue-600 hover:text-white transition text-lg"
+                title="Toggle sort order"
+              >
+                {sortOrder === "desc" ? "↓" : "↑"}
+              </button>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl shadow p-2 sm:p-4">
+            <JobList jobs={filteredJobs} onApplyClick={setSelectedJob} />
+          </div>
         </div>
       );
     }
 
     if (activeTab === "applied") {
-      return <JobSeekerApplication />;
+      return (
+        <div className="bg-white rounded-xl shadow p-2 sm:p-4 mb-8">
+          <JobSeekerApplication />
+        </div>
+      );
     }
 
     if (activeTab === "submitted") {
-      return <UnsubmittedWorks />; // ✅ Only works that haven't been submitted yet
+      return (
+        <div className="bg-white rounded-xl shadow p-2 sm:p-4 mb-8">
+          <UnsubmittedWorks />
+        </div>
+      );
     }
 
     if (activeTab === "completed") {
-      return <SubmittedWork />; // ✅ Submitted/completed works
-    }
-    if (activeTab === "submitted") {
-      return <UnsubmittedWorks />;
-    }
-
-    if (activeTab === "completed") {
-      return <SubmittedWork />;
+      return (
+        <div className="bg-white rounded-xl shadow p-2 sm:p-4 mb-8">
+          <SubmittedWork />
+        </div>
+      );
     }
 
     if (activeTab === "payments") {
-      return <ReceivedPayments />;
+      return (
+        <div className="bg-white rounded-xl shadow p-2 sm:p-4 mb-8">
+          <ReceivedPayments />
+        </div>
+      );
     }
   };
 
   return (
     <UserLayout userRole="jobseeker">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-6 sm:py-8">
         {/* Dashboard Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+          <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 text-center sm:text-left">
             Jobseeker Dashboard
           </h1>
-          <div className="flex space-x-4">
-            <Button variant="primary">Submit New Portfolio</Button>
-            <Button variant="secondary" onClick={handleOpenUpdateProfileModal}>
+          {/* Hide on mobile, show on sm+ */}
+          <div className="hidden sm:flex flex-row gap-2 sm:gap-4 w-full sm:w-auto">
+            <Button
+              variant="secondary"
+              className="w-full sm:w-auto"
+              onClick={handleOpenUpdateProfileModal}
+            >
               Update Profile
             </Button>
           </div>
         </div>
 
         {/* Toggle Tabs */}
-        <div className="flex space-x-6 border-b mb-6">
+        <div className="flex flex-wrap gap-2 sm:gap-6 border-b mb-6 overflow-x-auto">
           <button
             className={`pb-2 px-3 text-sm font-medium ${
               activeTab === "available"
@@ -135,7 +238,6 @@ const JobSeekerDashboard = () => {
           >
             Applied Jobs
           </button>
-
           <button
             className={`pb-2 px-3 text-sm font-medium ${
               activeTab === "submitted"
@@ -146,7 +248,6 @@ const JobSeekerDashboard = () => {
           >
             Works to Submit
           </button>
-
           <button
             className={`pb-2 px-3 text-sm font-medium ${
               activeTab === "completed"
@@ -157,7 +258,6 @@ const JobSeekerDashboard = () => {
           >
             Completed Works
           </button>
-
           <Button
             className={`pb-2 px-3 text-sm font-medium ${
               activeTab === "payments"
@@ -196,7 +296,6 @@ const JobSeekerDashboard = () => {
           <UpdateProfile onClose={handleCloseUpdateProfileModal} />
         </Modal>
       </div>
-
       <ToastContainer />
     </UserLayout>
   );

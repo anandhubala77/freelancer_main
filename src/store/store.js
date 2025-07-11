@@ -21,6 +21,9 @@ import adminProjectsReducer from "./slices/adminProjectSlice";
 import adminUsersReducer from "./slices/adminUserSlice";
 import adminPaymentReducer from "./slices/adminPaymentSlice";
 import adminFraudReducer from "./slices/adminFraudSlice";
+import adminStatsReducer from "./slices/adminStatSlice";
+import adminDashboardReducer from "./slices/adminDashboardSlice";
+import adminSinglePaymentReducer from "./slices/adminSinglePaymentSlice";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -34,6 +37,9 @@ const rootReducer = combineReducers({
   adminUsers: adminUsersReducer,
   adminPayments: adminPaymentReducer,
   adminFraud: adminFraudReducer,
+  adminStats: adminStatsReducer,
+  adminDashboard: adminDashboardReducer,
+  adminSinglePayment: adminSinglePaymentReducer,
 });
 
 const persistConfig = {

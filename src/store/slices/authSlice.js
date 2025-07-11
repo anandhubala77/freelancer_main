@@ -117,6 +117,33 @@ export const updateUserProfile = createAsyncThunk(
     }
   }
 );
+export const uploadProfileImage = createAsyncThunk(
+  "auth/uploadProfileImage",
+  async ({ formData, token }, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await axios.put("/admin/upload-profile", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const updatedUser = {
+        ...response.data.user_data,
+        token,
+      };
+
+      // 🔄 Save to sessionStorage so it persists on refresh
+      sessionStorage.setItem("user", JSON.stringify(updatedUser));
+
+      return updatedUser;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Upload failed");
+    }
+  }
+);
+
+
 
 // ✅ Slice
 const authSlice = createSlice({
@@ -204,6 +231,17 @@ const authSlice = createSlice({
         state.loading = false;
       })
       .addCase(updatePassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(uploadProfileImage.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(uploadProfileImage.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload; // Update user with new profile image
+      })
+      .addCase(uploadProfileImage.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

@@ -31,6 +31,8 @@ export const markPaymentSuccess = createAsyncThunk(
     }
   }
 );
+
+// Get Received Payments
 export const getReceivedPayments = createAsyncThunk(
   "payment/getReceivedPayments",
   async (freelancerId, thunkAPI) => {
@@ -42,6 +44,8 @@ export const getReceivedPayments = createAsyncThunk(
     }
   }
 );
+
+// Get Sent Payments
 export const getSentPayments = createAsyncThunk(
   "payment/getSentPayments",
   async (hiringPersonId, thunkAPI) => {
@@ -53,7 +57,8 @@ export const getSentPayments = createAsyncThunk(
     }
   }
 );
-// Async Thunk
+
+// Redundant but okay to keep for reuse
 export const fetchSentPayments = createAsyncThunk(
   "payment/fetchSentPayments",
   async (userId, thunkAPI) => {
@@ -66,6 +71,19 @@ export const fetchSentPayments = createAsyncThunk(
   }
 );
 
+
+export const deletePayment = createAsyncThunk(
+  "payment/deletePayment",
+  async (paymentId, thunkAPI) => {
+    try {
+      await axios.delete(`/payment/${paymentId}`);
+      return paymentId;
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.response?.data || "Delete failed");
+    }
+  }
+);
+
 const paymentSlice = createSlice({
   name: "payment",
   initialState: {
@@ -73,7 +91,7 @@ const paymentSlice = createSlice({
     orderDetails: null,
     successMessage: null,
     error: null,
-    receivedPayments: [], // ✅ New state
+    receivedPayments: [],
     sentPayments: [],
   },
   reducers: {
@@ -83,10 +101,12 @@ const paymentSlice = createSlice({
       state.successMessage = null;
       state.error = null;
       state.receivedPayments = [];
+      state.sentPayments = [];
     },
   },
   extraReducers: (builder) => {
     builder
+      // 🔵 Get Received Payments
       .addCase(getReceivedPayments.pending, (state) => {
         state.loading = true;
       })
@@ -98,6 +118,8 @@ const paymentSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+
+      // 🔵 Get Sent Payments
       .addCase(getSentPayments.pending, (state) => {
         state.loading = true;
       })
@@ -109,6 +131,8 @@ const paymentSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+
+      // 🔵 Fetch Sent Payments
       .addCase(fetchSentPayments.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -120,9 +144,33 @@ const paymentSlice = createSlice({
       .addCase(fetchSentPayments.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+      // 🟥 Delete Payment
+      .addCase(deletePayment.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(deletePayment.fulfilled, (state, action) => {
+        state.loading = false;
+        const deletedId = action.payload;
+
+        // Remove from sentPayments if it exists there
+        state.sentPayments = state.sentPayments.filter(
+          (p) => p._id !== deletedId
+        );
+
+        // Remove from receivedPayments if it exists there
+        state.receivedPayments = state.receivedPayments.filter(
+          (p) => p._id !== deletedId
+        );
+      })
+      .addCase(deletePayment.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
 
 export const { clearPaymentState } = paymentSlice.actions;
 export default paymentSlice.reducer;
+//1

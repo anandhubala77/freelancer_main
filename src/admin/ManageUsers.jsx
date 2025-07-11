@@ -50,7 +50,7 @@ const ManageUsers = () => {
   };
 
   return (
-    <div className="w-full px-2 py-4 sm:px-4 md:px-6 lg:px-8 min-h-screen">
+    <div className="w-full px-2 py-4 sm:px-4 md:px-6 lg:px-8 min-h-screen bg-gray-50">
       <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Manage Users</h1>
 
       {/* Search and Sort Controls */}
@@ -76,9 +76,9 @@ const ManageUsers = () => {
 
       {/* Users Table */}
       <div className="bg-white rounded-lg shadow p-2 sm:p-4 overflow-x-auto">
-        <table className="min-w-[700px] w-full text-sm">
+        <table className="min-w-[800px] w-full text-xs sm:text-sm text-left">
           <thead>
-            <tr className="border-b bg-gray-100 text-left">
+            <tr className="border-b bg-gray-100">
               <th className="py-2 px-2">#</th>
               <th className="py-2 px-2">User ID</th>
               <th className="py-2 px-2">Name</th>
@@ -90,7 +90,7 @@ const ManageUsers = () => {
           </thead>
           <tbody>
             {filteredUsers.map((u, index) => (
-              <tr key={u._id} className="border-b hover:bg-gray-50">
+              <tr key={u._id} className="border-b hover:bg-blue-50 transition">
                 <td className="py-3 px-2">{index + 1}</td>
                 <td className="py-3 px-2 text-xs text-gray-700 break-all select-text">
                   <div className="flex items-center gap-2">
@@ -110,7 +110,19 @@ const ManageUsers = () => {
                   {u.name} {u.lastName}
                 </td>
                 <td className="py-3 px-2 break-all max-w-[160px]">{u.email}</td>
-                <td className="py-3 px-2 capitalize">{u.role}</td>
+                <td className="py-3 px-2 capitalize">
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                    u.role === "admin"
+                      ? "bg-blue-100 text-blue-700"
+                      : u.role === "jobseeker"
+                      ? "bg-purple-100 text-purple-700"
+                      : u.role === "hiring"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-gray-200 text-gray-700"
+                  }`}>
+                    {u.role}
+                  </span>
+                </td>
                 <td className="py-3 px-2">
                   {new Date(u.createdAt).toLocaleDateString()}
                 </td>

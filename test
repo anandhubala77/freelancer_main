@@ -1,144 +1,230 @@
-export default function loadRazorpayScript() {
-  return new Promise((resolve) => {
-    if (window.Razorpay) {
-      resolve(true);
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-}
-
-
-// features/payment/paymentSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// Create Razorpay Order
-export const createPaymentOrder = createAsyncThunk(
-  "payment/createOrder",
-  async ({ amount, jobId, paidTo }, thunkAPI) => {
+// Thunk to fetch all fraud reports
+export const fetchFraudReports = createAsyncThunk(
+  "admin/fetchFraudReports",
+  async (_, { rejectWithValue }) => {
     try {
-      const res = await axios.post("/payment/create-order", {
-        amount,
-        jobId,
-        paidTo,
-      });
-      return res.data;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(error.response.data);
+      const response = await axios.get("/admin/fraud-reports");
+      return response.data; // { projectReports: [], userReports: [] }
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
 );
 
-// Mark Payment Success
-export const markPaymentSuccess = createAsyncThunk(
-  "payment/markSuccess",
-  async (paymentDetails, thunkAPI) => {
+// Thunk to delete a fraud report
+export const deleteFraudReport = createAsyncThunk(
+  "admin/deleteFraudReport",
+  async ({ type, reportedOnId, reportId }, { rejectWithValue }) => {
     try {
-      const res = await axios.post("/payment/mark-success", paymentDetails);
-      return res.data;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(error.response.data);
-    }
-  }
-);
-export const getReceivedPayments = createAsyncThunk(
-  "payment/getReceivedPayments",
-  async (freelancerId, thunkAPI) => {
-    try {
-      const res = await axios.get(`/payment/received/${freelancerId}`);
-      return res.data;
+      const url = `/admin/fraud-reports/${type}/${reportedOnId}/${reportId}`;
+      await axios.delete(url);
+      return { type, reportedOnId, reportId }; // Return for reducer
     } catch (err) {
-      return thunkAPI.rejectWithValue(err.response.data || "Failed to fetch");
-    }
-  }
-);
-export const getSentPayments = createAsyncThunk(
-  "payment/getSentPayments",
-  async (hiringPersonId, thunkAPI) => {
-    try {
-      const res = await axios.get(`/payment/sent/${hiringPersonId}`);
-      return res.data;
-    } catch (err) {
-      return thunkAPI.rejectWithValue(err.response.data || "Failed to fetch");
-    }
-  }
-);
-// Async Thunk
-export const fetchSentPayments = createAsyncThunk(
-  "payment/fetchSentPayments",
-  async (userId, thunkAPI) => {
-    try {
-      const res = await axios.get(`/payment/sent/${userId}`);
-      return res.data;
-    } catch (err) {
-      return thunkAPI.rejectWithValue(err.response?.data || "Error");
+      return rejectWithValue(err.response?.data?.message || "Delete failed");
     }
   }
 );
 
-const paymentSlice = createSlice({
-  name: "payment",
+// Slice
+const adminFraudSlice = createSlice({
+  name: "adminFraud",
   initialState: {
+    reports: [],
     loading: false,
-    orderDetails: null,
-    successMessage: null,
     error: null,
-    receivedPayments: [], // ✅ New state
-    sentPayments: [],
   },
-  reducers: {
-    clearPaymentState: (state) => {
-      state.loading = false;
-      state.orderDetails = null;
-      state.successMessage = null;
-      state.error = null;
-      state.receivedPayments = [];
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(getReceivedPayments.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(getReceivedPayments.fulfilled, (state, action) => {
-        state.loading = false;
-        state.receivedPayments = action.payload;
-      })
-      .addCase(getReceivedPayments.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      .addCase(getSentPayments.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(getSentPayments.fulfilled, (state, action) => {
-        state.loading = false;
-        state.sentPayments = action.payload;
-      })
-      .addCase(getSentPayments.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      .addCase(fetchSentPayments.pending, (state) => {
+      // Fetch fraud reports
+      .addCase(fetchFraudReports.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchSentPayments.fulfilled, (state, action) => {
+      .addCase(fetchFraudReports.fulfilled, (state, action) => {
         state.loading = false;
-        state.sentPayments = action.payload;
+
+        const { projectReports = [], userReports = [] } = action.payload;
+
+        const formattedProjectReports = projectReports.map((r) => ({
+          reportId: r._id,
+          reportedOnId: r.reportedOnId,
+          reportedBy: r.reportedByName || r.reportedBy,
+          reason: r.reason,
+          createdAt: r.createdAt,
+          type: "project", // ✅ ensure lowercase
+        }));
+
+        const formattedUserReports = userReports.map((r) => ({
+          reportId: r.reportId, 
+          reportedOnId: r.reportedOnId,
+          reportedBy: r.reportedByName || r.reportedBy,
+          reason: r.reason,
+          createdAt: r.createdAt,
+          type: "user", // ✅ ensure lowercase
+        }));
+
+        state.reports = [...formattedProjectReports, ...formattedUserReports];
       })
-      .addCase(fetchSentPayments.rejected, (state, action) => {
+      .addCase(fetchFraudReports.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || "Failed to fetch fraud reports.";
+      })
+
+      // Delete report
+      .addCase(deleteFraudReport.fulfilled, (state, action) => {
+        const { type, reportedOnId, reportId } = action.payload;
+        state.reports = state.reports.filter(
+          (r) =>
+            !(
+              r.reportId === reportId &&
+              r.reportedOnId === reportedOnId &&
+              r.type === type
+            )
+        );
+      })
+      .addCase(deleteFraudReport.rejected, (state, action) => {
+        state.error = action.payload || "Failed to delete report.";
       });
   },
 });
 
-export const { clearPaymentState } = paymentSlice.actions;
-export default paymentSlice.reducer;
+export default adminFraudSlice.reducer;
 
+
+// src/store/slices/adminProjectSlice.js
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
+import { base_url } from '../../services/base_url';
+
+// Fetch all projects
+export const fetchAllProjects = createAsyncThunk(
+  'admin/fetchAllProjects',
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await axios.get(`${base_url}/admin/projects`);
+      return res.data; // 👈 fix here
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
+// Delete a project
+export const adminDeleteProject = createAsyncThunk(
+  'admin/deleteProject',
+  async (projectId, { rejectWithValue }) => {
+    try {
+      console.log("Deleting project:", projectId); // ✅
+      const res = await axios.delete(`${base_url}/admin/projects/${projectId}`);
+      return projectId;
+    } catch (err) {
+      console.error("DELETE Error", err); // ✅
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
+
+const adminProjectsSlice = createSlice({
+  name: 'adminProjects',
+  initialState: {
+    projects: [],
+    status: 'idle',
+    error: null,
+  },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchAllProjects.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchAllProjects.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.projects = action.payload;
+      })
+      .addCase(fetchAllProjects.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+      .addCase(adminDeleteProject.fulfilled, (state, action) => {
+        state.projects = state.projects.filter(p => p._id !== action.payload);
+      });
+  }
+});
+
+export const selectAdminProjects = (state) => state.adminProjects.projects || [];
+export const getAdminProjectsStatus = (state) => state.adminProjects.status;
+export const getAdminProjectsError = (state) => state.adminProjects.error;
+
+export default adminProjectsSlice.reducer;
+
+// src/store/slices/adminProjectSlice.js
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
+import { base_url } from '../../services/base_url';
+
+// Fetch all projects
+export const fetchAllProjects = createAsyncThunk(
+  'admin/fetchAllProjects',
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await axios.get(`${base_url}/admin/projects`);
+      return res.data; // 👈 fix here
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
+// Delete a project
+export const adminDeleteProject = createAsyncThunk(
+  'admin/deleteProject',
+  async (projectId, { rejectWithValue }) => {
+    try {
+      console.log("Deleting project:", projectId); // ✅
+      const res = await axios.delete(`${base_url}/admin/projects/${projectId}`);
+      return projectId;
+    } catch (err) {
+      console.error("DELETE Error", err); // ✅
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
+
+const adminProjectsSlice = createSlice({
+  name: 'adminProjects',
+  initialState: {
+    projects: [],
+    status: 'idle',
+    error: null,
+  },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchAllProjects.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchAllProjects.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.projects = action.payload;
+      })
+      .addCase(fetchAllProjects.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+      .addCase(adminDeleteProject.fulfilled, (state, action) => {
+        state.projects = state.projects.filter(p => p._id !== action.payload);
+      });
+  }
+});
+
+export const selectAdminProjects = (state) => state.adminProjects.projects || [];
+export const getAdminProjectsStatus = (state) => state.adminProjects.status;
+export const getAdminProjectsError = (state) => state.adminProjects.error;
+
+export default adminProjectsSlice.reducer;

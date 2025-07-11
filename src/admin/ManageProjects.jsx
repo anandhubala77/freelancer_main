@@ -36,7 +36,7 @@ const ManageProjects = () => {
   };
 
   return (
-    <div className="w-full px-2 py-4 sm:px-4 md:px-6 lg:px-8 min-h-screen">
+    <div className="w-full px-2 py-4 sm:px-4 md:px-6 lg:px-8 min-h-screen bg-gray-50">
       <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Manage Projects</h1>
 
       {/* Search Bar and Buttons */}
@@ -68,7 +68,7 @@ const ManageProjects = () => {
       {/* Table */}
       {status === "succeeded" && (
         <div className="bg-white rounded-lg shadow p-2 sm:p-4 overflow-x-auto">
-          <table className="min-w-[700px] w-full text-sm text-left">
+          <table className="min-w-[800px] w-full text-xs sm:text-sm text-left">
             <thead>
               <tr className="border-b bg-gray-100">
                 <th className="py-2 px-2 text-left">Title</th>
@@ -81,10 +81,22 @@ const ManageProjects = () => {
             </thead>
             <tbody>
               {filtered.map((proj) => (
-                <tr key={proj._id} className="border-b hover:bg-gray-50">
-                  <td className="py-3 px-2 break-words max-w-[180px]">{proj.title}</td>
-                  <td className="py-3 px-2">₹{proj.budget}</td>
-                  <td className="py-3 px-2 capitalize">{proj.status}</td>
+                <tr key={proj._id} className="border-b hover:bg-blue-50 transition">
+                  <td className="py-3 px-2 break-words max-w-[180px] font-medium text-gray-800">{proj.title}</td>
+                  <td className="py-3 px-2 text-blue-700 font-semibold">₹{proj.budget}</td>
+                  <td className="py-3 px-2 capitalize">
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      proj.status === "completed"
+                        ? "bg-green-100 text-green-700"
+                        : proj.status === "pending"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : proj.status === "rejected"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-gray-200 text-gray-700"
+                    }`}>
+                      {proj.status}
+                    </span>
+                  </td>
                   <td className="py-3 px-2">{proj.reports?.length || 0}</td>
                   <td className="py-3 px-2 break-words max-w-[120px]">
                     {proj.userId?.name} {proj.userId?.lastName}
@@ -97,6 +109,7 @@ const ManageProjects = () => {
                         aria-label="Delete"
                       >
                         <MdDelete size={20} />
+                        <span className="hidden sm:inline">Delete</span>
                       </button>
                     </div>
                   </td>

@@ -27,6 +27,7 @@ const Navbar = () => {
     dispatch(logout());
     toast.success("Logout successful");
     navigate("/Login");
+    setToggleMenu(false);
   };
 
   const getProfileImage = () => {
@@ -60,12 +61,6 @@ const Navbar = () => {
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-6">
-              <input
-                type="text"
-                placeholder="Search here..."
-                className="border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:border-blue-500 w-56 lg:w-64"
-              />
-
               {userRole === "jobseeker" && (
                 <div className="relative group">
                   <button className="text-gray-700 flex items-center gap-1">
@@ -85,7 +80,7 @@ const Navbar = () => {
                 </div>
               )}
 
-              {userRole === "hiringperson" && (
+              {/* {userRole === "hiringperson" && (
                 <div className="relative group">
                   <button className="text-gray-700 flex items-center gap-1">
                     Hire Freelancers <FiChevronDown />
@@ -102,7 +97,7 @@ const Navbar = () => {
                     ))}
                   </div>
                 </div>
-              )}
+              )} */}
             </div>
           </div>
 
@@ -213,71 +208,53 @@ const Navbar = () => {
         }`}
       >
         <div className="flex flex-col gap-6 font-semibold">
-          {userRole === "jobseeker" && (
-            <div>
-              <button
-                onClick={() => handleMobileMenuToggle("findWork")}
-                className="w-full text-left py-2 text-gray-700 flex items-center justify-between"
+          {/* Show profile actions for logged-in users */}
+          {user && (
+            <div className="flex flex-col gap-2 border-b pb-4 mb-4">
+              <Link
+                to="/user/profile/view"
+                className="block px-4 py-2 text-blue-700 hover:bg-blue-50 rounded"
+                onClick={() => setToggleMenu(false)}
               >
-                Find Work <FiChevronDown />
+                View Profile
+              </Link>
+              <Link
+                to={
+                  userRole === "jobseeker"
+                    ? "/user/profile/edit"
+                    : "/user/updateHiringprofile"
+                }
+                className="block px-4 py-2 text-blue-700 hover:bg-blue-50 rounded"
+                onClick={() => setToggleMenu(false)}
+              >
+                Update Profile
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="block text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded"
+              >
+                Logout
               </button>
-              {activeMobileMenu === "findWork" && (
-                <div className="pl-4">
-                  {findWorkItems.map((item, index) => (
-                    <a
-                      key={index}
-                      href={item.href}
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    >
-                      {item.title}
-                    </a>
-                  ))}
-                </div>
-              )}
             </div>
           )}
 
-          {userRole === "hiringperson" && (
-            <div>
-              <button
-                onClick={() => handleMobileMenuToggle("hireFreelancers")}
-                className="w-full text-left py-2 text-gray-700 flex items-center justify-between"
-              >
-                Hire Freelancers <FiChevronDown />
-              </button>
-              {activeMobileMenu === "hireFreelancers" && (
-                <div className="pl-4">
-                  {hireFreelancersItems.map((item, index) => (
-                    <a
-                      key={index}
-                      href={item.href}
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    >
-                      {item.title}
-                    </a>
-                  ))}
-                </div>
-              )}
+          {/* Only show Hire Freelancers for hiringperson in mobile */}
+          
+          {/* Mobile Auth Buttons for guests */}
+          {!user && (
+            <div className="pt-4">
+              <Link to="/login">
+                <button className="block w-full border-2 border-gray-300 py-2 px-4 rounded-full text-center hover:bg-gray-700 hover:text-white">
+                  Login
+                </button>
+              </Link>
+              <Link to="/register">
+                <button className="mt-2 block w-full border-2 border-gray-300 py-2 px-4 rounded-full text-center hover:bg-gray-700 hover:text-white">
+                  Sign Up
+                </button>
+              </Link>
             </div>
           )}
-
-          {/* Mobile Auth Buttons */}
-          <div className="pt-4">
-            {!user && (
-              <>
-                <Link to="/login">
-                  <button className="block w-full border-2 border-gray-300 py-2 px-4 rounded-full text-center hover:bg-gray-700 hover:text-white">
-                    Login
-                  </button>
-                </Link>
-                <Link to="/register">
-                  <button className="mt-2 block w-full border-2 border-gray-300 py-2 px-4 rounded-full text-center hover:bg-gray-700 hover:text-white">
-                    Sign Up
-                  </button>
-                </Link>
-              </>
-            )}
-          </div>
         </div>
       </div>
 

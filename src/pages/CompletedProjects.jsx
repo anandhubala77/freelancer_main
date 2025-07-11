@@ -1,8 +1,10 @@
-// CompletedProjects.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // ✅ Add useEffect
 import loadRazorpayScript from "../utils/loadRazorpayScript";
 import { useSelector, useDispatch } from "react-redux";
-import { selectAllApplications } from "../store/slices/applicationSlice";
+import {
+  selectAllApplications,
+  fetchApplicationsByHiringPerson, // ✅ Import thunk
+} from "../store/slices/applicationSlice";
 import {
   createPaymentOrder,
   markPaymentSuccess,
@@ -15,68 +17,16 @@ const CompletedProjects = () => {
   const { user } = useSelector((state) => state.auth);
   const { sentPayments } = useSelector((state) => state.payment);
 
-  const handlePay = async (app) => {
-    console.log("Sending payment request with:", {
-      amount: app.bidAmount,
-      jobId: app.jobId?._id,
-      paidTo: app.userId?._id,
-    });
-
-    const loaded = await loadRazorpayScript();
-    if (!loaded) return alert("Razorpay SDK failed to load");
-
-    try {
-      const res = await dispatch(
-        createPaymentOrder({
-          amount: app.bidAmount || 100, // Use actual bid amount
-          jobId: app.jobId?._id,
-          paidTo: app.userId?._id,
-        })
-      );
-
-      if (!res.payload || res.error) {
-        throw new Error("Failed to create Razorpay order");
-      }
-
-      const data = res.payload;
-
-      const options = {
-        key: "rzp_test_HnpMhDOhL0dI1d",
-        amount: data.amount,
-        currency: data.currency,
-        name: "Freelancer Project Payment",
-        description: "Payment for completed project",
-        order_id: data.orderId,
-        handler: async function (response) {
-          await dispatch(
-            markPaymentSuccess({
-              razorpayPaymentId: response.razorpay_payment_id,
-              razorpayOrderId: response.razorpay_order_id,
-              amount: data.amount / 100,
-              jobId: data.jobId,
-              quotationId: app._id,
-              paidBy: user?._id,
-              paidTo: app.userId?._id,
-            })
-          );
-          setPaidApplications((prev) => [...prev, app._id]); // ✅ Mark as paid
-          alert("Payment Successful & Stored!");
-        },
-        prefill: {
-          name: user?.name || "Hiring Person",
-          email: user?.email || "example@freelance.com",
-        },
-        theme: {
-          color: "#00246B",
-        },
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } catch (err) {
-      console.error("Payment error:", err);
-      alert("Payment initiation failed");
+  // ✅ Fetch applications for hiring person on component mount
+  useEffect(() => {
+    if (user?.role === "hiringperson") {
+      dispatch(fetchApplicationsByHiringPerson());
     }
+  }, [dispatch, user]);
+  
+
+  const handlePay = async (app) => {
+    // ...
   };
 
   return (
@@ -84,10 +34,7 @@ const CompletedProjects = () => {
       {applications
         .filter((app) => app.submission?.link)
         .map((app) => (
-          <div
-            key={app._id}
-            className="bg-gray-100 p-4 rounded-lg shadow-md mb-4"
-          >
+          <div key={app._id} className="bg-gray-100 p-4 rounded-lg shadow-md mb-4">
             <h3 className="text-lg font-semibold">
               {app.jobId?.title || "No Title"}
             </h3>

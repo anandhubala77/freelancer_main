@@ -1,13 +1,10 @@
-import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { FaSearch, FaFilter, FaSortUp, FaTrash } from "react-icons/fa";
 import {
-  FaSearch,
-  FaFilter,
-  FaSortUp,
-  FaCheck,
-  FaTrash,
-} from 'react-icons/fa';
-import { fetchFraudReports } from '../store/slices/adminFraudSlice';
+  fetchFraudReports,
+  deleteFraudReport,
+} from "../store/slices/adminFraudSlice";
 
 const FraudReports = () => {
   const dispatch = useDispatch();
@@ -17,9 +14,23 @@ const FraudReports = () => {
     dispatch(fetchFraudReports());
   }, [dispatch]);
 
+  const handleDelete = (report) => {
+    if (window.confirm("Are you sure you want to delete this fraud report?")) {
+      dispatch(
+        deleteFraudReport({
+          type: report.type,
+          reportedOnId: report.reportedOnId,
+          reportId: report.reportId,
+        })
+      );
+    }
+  };
+
   return (
     <div className="w-full px-2 py-4 sm:px-4 md:px-6 lg:px-8 bg-gray-50 min-h-screen">
-      <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6">Fraud Reports</h1>
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6">
+        Fraud Reports
+      </h1>
 
       {/* Controls */}
       <div className="flex flex-col sm:flex-row items-center gap-3 mb-6">
@@ -43,12 +54,12 @@ const FraudReports = () => {
         </div>
       </div>
 
-      {/* Reports Table */}
-      <div className="bg-white rounded-lg shadow p-2 sm:p-4 overflow-x-auto">
-        <table className="min-w-[800px] w-full text-sm text-left">
+      {/* Responsive Table Wrapper */}
+      <div className="w-full overflow-x-auto">
+        <table className="min-w-[700px] w-full text-xs sm:text-sm text-left">
           <thead className="border-b bg-gray-100">
             <tr>
-              <th className="p-4">Reported ID</th>
+              <th className="p-4">Report ID</th>
               <th className="p-4">Reported By</th>
               <th className="p-4">Type</th>
               <th className="p-4">Reason</th>
@@ -58,42 +69,57 @@ const FraudReports = () => {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td className="p-4" colSpan="6">Loading...</td></tr>
+              <tr>
+                <td className="p-4" colSpan="6">
+                  Loading...
+                </td>
+              </tr>
             ) : error ? (
-              <tr><td className="p-4 text-red-500" colSpan="6">{error}</td></tr>
+              <tr>
+                <td className="p-4 text-red-500" colSpan="6">
+                  {error}
+                </td>
+              </tr>
             ) : reports.length === 0 ? (
-              <tr><td className="p-4 text-gray-500" colSpan="6">No reports found.</td></tr>
+              <tr>
+                <td className="p-4 text-gray-500" colSpan="6">
+                  No reports found.
+                </td>
+              </tr>
             ) : (
               reports.map((report, index) => (
                 <tr key={index} className="border-b hover:bg-gray-50 transition">
-                  <td className="p-4 break-all text-xs text-gray-800">{report._id}</td>
-                  <td className="p-4 break-all text-xs text-gray-800">{report.reportedBy}</td>
+                  <td className="p-4 break-all text-xs text-gray-800">
+                    {report.reportId}
+                  </td>
+                  <td className="p-4 break-all text-xs text-gray-800">
+                    {report.reportedBy}
+                  </td>
                   <td className="p-4 text-xs font-medium">
-                    <span className={`px-2 py-1 rounded-full text-white ${
-                      report.type === 'project'
-                        ? 'bg-blue-500'
-                        : 'bg-orange-500'
-                    }`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-white ${
+                        report.type === "project"
+                          ? "bg-blue-500"
+                          : "bg-orange-500"
+                      }`}
+                    >
                       {report.type}
                     </span>
                   </td>
-                  <td className="p-4 max-w-[200px] break-words text-xs">{report.reason}</td>
-                  <td className="p-4 text-xs text-gray-500">{new Date(report.createdAt).toLocaleDateString()}</td>
+                  <td className="p-4 max-w-[200px] break-words text-xs">
+                    {report.reason || "—"}
+                  </td>
+                  <td className="p-4 text-xs text-gray-500">
+                    {new Date(report.createdAt).toLocaleDateString()}
+                  </td>
                   <td className="p-4">
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        className="text-green-500 hover:text-green-600"
-                        title="Mark as Resolved"
-                      >
-                        <FaCheck className="w-4 h-4" />
-                      </button>
-                      <button
-                        className="text-red-500 hover:text-red-600"
-                        title="Delete"
-                      >
-                        <FaTrash className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => handleDelete(report)}
+                      className="text-red-500 hover:text-red-600"
+                      title="Delete"
+                    >
+                      <FaTrash className="w-4 h-4" />
+                    </button>
                   </td>
                 </tr>
               ))

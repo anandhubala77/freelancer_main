@@ -187,10 +187,11 @@ const HiringPersonDashboard = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-3 sm:px-4 py-2 sm:py-4 text-sm font-medium ${activeTab === tab.id
+                  className={`px-3 sm:px-4 py-2 sm:py-4 text-sm font-medium ${
+                    activeTab === tab.id
                       ? "border-b-2 border-blue-500 text-blue-600"
                       : "text-gray-500 hover:text-gray-700"
-                    }`}
+                  }`}
                 >
                   {tab.label}
                 </button>
@@ -237,25 +238,9 @@ const HiringPersonDashboard = () => {
             </div>
           )}
 
-          {activeTab === "active" &&
-            applications?.length > 0 &&
-            applications
-              .filter((app) => app.submission?.link)
-              .map((app) => (
-                <div key={app._id} className="...">
-                  <ActiveApplication />
-                </div>
-              ))}
+          {activeTab === "active" && <ActiveApplication />}
 
-          {activeTab === "completed" &&
-            applications?.length > 0 &&
-            applications
-              .filter((app) => app.submission?.link)
-              .map((app) => (
-                <div key={app._id} className="...">
-                  <CompletedProjects />
-                </div>
-              ))}
+          {activeTab === "completed" && <CompletedProjects />}
 
           {activeTab === "payments" && (
             <div>

@@ -23,7 +23,7 @@ import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { initializeAuth } from './store/slices/authSlice';
 import { ViewProfile } from './pages/ViewProfile';
-import { UpdateProfile } from './pages/UpdateProfile';
+import  UpdateProfile  from './pages/UpdateProfile';
 import AdminProfile from './admin/AdminProfile';
 
 function App() {
