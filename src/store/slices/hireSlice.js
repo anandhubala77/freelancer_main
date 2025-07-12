@@ -3,6 +3,8 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { base_url } from "../../services/base_url";
 
+
+axios.defaults.baseURL = base_url;
 // Get token from sessionStorage
 const getToken = () => {
   const user = sessionStorage.getItem("user");

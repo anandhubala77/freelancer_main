@@ -1,6 +1,9 @@
 // features/payment/paymentSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import { base_url } from "../../services/base_url";
+
+axios.defaults.baseURL = base_url;
 
 // Create Razorpay Order
 export const createPaymentOrder = createAsyncThunk(

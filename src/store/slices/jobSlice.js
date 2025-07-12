@@ -1,6 +1,10 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
+import { base_url } from "../../services/base_url";
+
+axios.defaults.baseURL = base_url;
+
 export const fetchJobs = createAsyncThunk(
   "jobs/fetchJobs",
   async (token, { rejectWithValue }) => {

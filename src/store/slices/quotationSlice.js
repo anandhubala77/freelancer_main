@@ -1,5 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { base_url } from "../../services/base_url";
+
+// Set the default base URL
+axios.defaults.baseURL = base_url;
 
 // ✅ Submit a new quotation
 export const submitQuotation = createAsyncThunk(
@@ -9,20 +13,19 @@ export const submitQuotation = createAsyncThunk(
       const res = await axios.post("/quotation", quoteData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      return res.data; // Make sure this line exists!
+      return res.data;
     } catch (err) {
       return rejectWithValue(err.response.data.message || "Submission failed");
     }
   }
 );
 
-
 // ✅ Fetch quotations for a specific job
 export const fetchQuotations = createAsyncThunk(
   'quotation/fetchQuotations',
   async ({ jobId, token }, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`http://localhost:5000/quotations/job/${jobId}`, {
+      const res = await axios.get(`/quotations/job/${jobId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -39,7 +42,7 @@ export const fetchMyQuotations = createAsyncThunk(
   'quotation/fetchMyQuotations',
   async (token, { rejectWithValue }) => {
     try {
-      const res = await axios.get('http://localhost:5000/quotations/my', {
+      const res = await axios.get('/quotations/my', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -57,7 +60,7 @@ export const updateQuotationStatus = createAsyncThunk(
   async ({ quotationId, status, token }, { rejectWithValue }) => {
     try {
       const res = await axios.patch(
-        `http://localhost:5000/quotations/${quotationId}/status`,
+        `/quotations/${quotationId}/status`,
         { status },
         {
           headers: { Authorization: `Bearer ${token}` },

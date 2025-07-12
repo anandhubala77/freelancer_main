@@ -1,5 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import { base_url } from "../../services/base_url";
+
+axios.defaults.baseURL = base_url;
 
 // ✅ Thunk: Fetch all payments for admin
 export const fetchAdminPayments = createAsyncThunk(
