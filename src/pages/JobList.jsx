@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { reportProject } from "../store/slices/projectSlice";
 import { toast } from "react-toastify";
 
-const JobList = ({ jobs, onApplyClick }) => {
+const JobList = ({ jobs, onApplyClick, myQuotations = [] }) => {
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
   const [reason, setReason] = useState("");
@@ -46,62 +46,85 @@ const JobList = ({ jobs, onApplyClick }) => {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {jobs.map((job) => (
-          <div
-            key={job._id}
-            className="bg-white rounded-lg shadow p-4 flex flex-col justify-between"
-          >
-            {job.image && (
-              <img
-                src={job.image}
-                alt={job.title}
-                className="w-full h-40 object-cover rounded mb-3"
-              />
-            )}
+        {jobs.map((job) => {
+          const alreadyApplied = myQuotations?.some((quote) => {
+            const jobId =
+              typeof quote.jobId === "string" ? quote.jobId : quote.jobId?._id;
+            return jobId === job._id;
+          });
 
-            <div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">{job.title}</h3>
-              <p className="text-gray-600 mb-2 line-clamp-3">{job.description}</p>
+          return (
+            <div
+              key={job._id}
+              className="bg-white rounded-lg shadow p-4 flex flex-col justify-between relative"
+            >
+              {alreadyApplied && (
+                <div className="absolute top-2 right-2 bg-green-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-md">
+                  Applied
+                </div>
+              )}
 
-              <p className="text-sm text-gray-700">
-                <strong>Budget:</strong> ₹{job.budget}
-              </p>
-              <p className="text-sm text-gray-700">
-                <strong>Timeline:</strong> {job.timeline || "Not specified"}
-              </p>
-              <p className="text-sm text-gray-700">
-                <strong>Location:</strong> {job.location || "Remote"}
-              </p>
-              <p className="text-sm text-gray-700">
-                <strong>Skills:</strong>{" "}
-                {Array.isArray(job.skillsRequired)
-                  ? job.skillsRequired.join(", ")
-                  : job.skillsRequired}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                Posted on:{" "}
-                {job.createdAt
-                  ? new Date(job.createdAt).toLocaleDateString()
-                  : "Unknown"}
-              </p>
+              {job.image && (
+                <img
+                  src={job.image}
+                  alt={job.title}
+                  className="w-full h-40 object-cover rounded mb-3"
+                />
+              )}
+
+              <div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">
+                  {job.title}
+                </h3>
+                <p className="text-gray-600 mb-2 line-clamp-3">
+                  {job.description}
+                </p>
+
+                <p className="text-sm text-gray-700">
+                  <strong>Budget:</strong> ₹{job.budget}
+                </p>
+                <p className="text-sm text-gray-700">
+                  <strong>Timeline:</strong> {job.timeline || "Not specified"}
+                </p>
+                <p className="text-sm text-gray-700">
+                  <strong>Location:</strong> {job.location || "Remote"}
+                </p>
+                <p className="text-sm text-gray-700">
+                  <strong>Skills:</strong>{" "}
+                  {Array.isArray(job.skillsRequired)
+                    ? job.skillsRequired.join(", ")
+                    : job.skillsRequired}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Posted on:{" "}
+                  {job.createdAt
+                    ? new Date(job.createdAt).toLocaleDateString()
+                    : "Unknown"}
+                </p>
+              </div>
+
+              <div className="mt-4 flex flex-col sm:flex-row gap-3">
+                <Button
+                  onClick={() => onApplyClick(job)}
+                  disabled={alreadyApplied}
+                  className={`w-full ${
+                    alreadyApplied
+                      ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700 text-white"
+                  }`}
+                >
+                  {alreadyApplied ? "Applied" : "Apply"}
+                </Button>
+                <Button
+                  onClick={() => handleReportClick(job)}
+                  className="w-full bg-blue-100 text-blue-700 hover:bg-blue-200"
+                >
+                  Report
+                </Button>
+              </div>
             </div>
-
-            <div className="mt-4 flex flex-col sm:flex-row gap-3">
-              <Button
-                onClick={() => onApplyClick(job)}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                Apply
-              </Button>
-              <Button
-                onClick={() => handleReportClick(job)}
-                className="w-full bg-blue-100 text-blue-700 hover:bg-blue-200"
-              >
-                Report
-              </Button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Modal for Report */}
@@ -118,7 +141,10 @@ const JobList = ({ jobs, onApplyClick }) => {
             rows={4}
           />
           <div className="flex justify-end gap-3">
-            <Button variant="secondary" onClick={() => setReportModalOpen(false)}>
+            <Button
+              variant="secondary"
+              onClick={() => setReportModalOpen(false)}
+            >
               Cancel
             </Button>
             <Button

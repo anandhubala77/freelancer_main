@@ -1,10 +1,22 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-export const fetchJobs = createAsyncThunk("jobs/fetchJobs", async () => {
-  const response = await axios.get("/projects"); // Base URL should be set globally
-  return response.data;
-});
+export const fetchJobs = createAsyncThunk(
+  "jobs/fetchJobs",
+  async (token, { rejectWithValue }) => {
+    try {
+      const response = await axios.get("/projects", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
 
 const jobSlice = createSlice({
   name: "jobs",

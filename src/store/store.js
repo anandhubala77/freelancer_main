@@ -24,6 +24,7 @@ import adminFraudReducer from "./slices/adminFraudSlice";
 import adminStatsReducer from "./slices/adminStatSlice";
 import adminDashboardReducer from "./slices/adminDashboardSlice";
 import adminSinglePaymentReducer from "./slices/adminSinglePaymentSlice";
+import notificationReducer from "./slices/notificationSlice";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -40,6 +41,7 @@ const rootReducer = combineReducers({
   adminStats: adminStatsReducer,
   adminDashboard: adminDashboardReducer,
   adminSinglePayment: adminSinglePaymentReducer,
+  notifications: notificationReducer,
 });
 
 const persistConfig = {

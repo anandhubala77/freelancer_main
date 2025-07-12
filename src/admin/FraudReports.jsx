@@ -1,28 +1,60 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { FaSearch, FaFilter, FaSortUp, FaTrash } from "react-icons/fa";
+import { FaSearch, FaFilter, FaSortUp } from "react-icons/fa";
 import {
   fetchFraudReports,
-  deleteFraudReport,
+  sendReportResponse,
+  clearResponseStatus,
 } from "../store/slices/adminFraudSlice";
+import Modal from "../components/Modal";
+import { toast } from "react-toastify";
 
 const FraudReports = () => {
   const dispatch = useDispatch();
-  const { reports, loading, error } = useSelector((state) => state.adminFraud);
+  const { reports, loading, error, responseLoading } = useSelector(
+    (state) => state.adminFraud
+  );
+
+  const [selectedReport, setSelectedReport] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [responseText, setResponseText] = useState("");
 
   useEffect(() => {
     dispatch(fetchFraudReports());
   }, [dispatch]);
 
-  const handleDelete = (report) => {
-    if (window.confirm("Are you sure you want to delete this fraud report?")) {
-      dispatch(
-        deleteFraudReport({
-          type: report.type,
-          reportedOnId: report.reportedOnId,
-          reportId: report.reportId,
+  const openResponseModal = (report) => {
+    setSelectedReport(report);
+    setResponseText(report.responseMessage || "");
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedReport(null);
+    setResponseText("");
+  };
+
+  const handleSendResponse = async () => {
+    if (responseText.trim().length < 10) {
+      toast.error("Message must be at least 10 characters.");
+      return;
+    }
+
+    try {
+      await dispatch(
+        sendReportResponse({
+          reportType: selectedReport.type,
+          reportId: selectedReport.reportId,
+          responseMessage: responseText,
         })
-      );
+      ).unwrap();
+
+      toast.success("Response sent successfully.");
+      dispatch(clearResponseStatus());
+      closeModal();
+    } catch (err) {
+      toast.error("Failed to send response.");
     }
   };
 
@@ -54,7 +86,7 @@ const FraudReports = () => {
         </div>
       </div>
 
-      {/* Responsive Table Wrapper */}
+      {/* Table */}
       <div className="w-full overflow-x-auto">
         <table className="min-w-[700px] w-full text-xs sm:text-sm text-left">
           <thead className="border-b bg-gray-100">
@@ -112,14 +144,36 @@ const FraudReports = () => {
                   <td className="p-4 text-xs text-gray-500">
                     {new Date(report.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="p-4">
-                    <button
-                      onClick={() => handleDelete(report)}
-                      className="text-red-500 hover:text-red-600"
-                      title="Delete"
-                    >
-                      <FaTrash className="w-4 h-4" />
-                    </button>
+                  <td className="p-4 flex flex-col sm:flex-row gap-2">
+                    {!!report.responseMessage ? (
+                      <div className="flex flex-col text-xs text-green-700">
+                        <span className="font-semibold text-green-800">
+                          ✅ Response already sent
+                        </span>
+                        <span className="italic text-gray-800 mt-1">
+                          {report.responseMessage}
+                        </span>
+                        {report.responseAt && (
+                          <span className="text-gray-500 text-xs mt-1">
+                            Responded on{" "}
+                            {new Date(report.responseAt).toLocaleString()}
+                          </span>
+                        )}
+                        <button
+                          onClick={() => openResponseModal(report)}
+                          className="mt-1 text-blue-600 hover:underline text-xs"
+                        >
+                          Edit Response
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => openResponseModal(report)}
+                        className="text-blue-600 text-xs hover:underline"
+                      >
+                        Respond
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))
@@ -127,6 +181,42 @@ const FraudReports = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Modal */}
+      <Modal isOpen={showModal} onClose={closeModal}>
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-gray-800">
+            Respond to Fraud Report
+          </h2>
+          <p className="text-sm text-gray-600">
+            <strong>To:</strong> {selectedReport?.reportedBy} ({selectedReport?.type})
+          </p>
+          <textarea
+            rows="4"
+            className="w-full p-2 border rounded text-sm"
+            placeholder="Type your response message here..."
+            value={responseText}
+            onChange={(e) => setResponseText(e.target.value)}
+          />
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={closeModal}
+              className="px-4 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSendResponse}
+              disabled={responseLoading}
+              className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700"
+            >
+              {responseLoading ? "Sending..." : "Send"}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

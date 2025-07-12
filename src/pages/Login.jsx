@@ -1,3 +1,4 @@
+// ... same imports
 import React, { useState, useEffect } from "react";
 import Logo from "../components/Logo";
 import { ToastContainer, toast } from "react-toastify";
@@ -6,7 +7,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../store/slices/authSlice";
 
-// Reusable Icons
 const GoogleIcon = () => (
   <svg className="w-5 h-5 mr-2" viewBox="0 0 48 48">
     <path fill="#EA4335" d="M24 9.5c3.21 0 5.99 1.1 8.03 3.03l6.36-6.36C34.04 2.86 29.63 1 24 1 14.32 1 6.36 6.7 3.18 15.18l7.86 6.1C12.25 14.68 17.68 9.5 24 9.5z" />
@@ -30,31 +30,32 @@ function Login() {
   const [hasJustLoggedIn, setHasJustLoggedIn] = useState(false);
 
   const [userData, setUserData] = useState({ email: "", password: "" });
+  const [formErrors, setFormErrors] = useState({});
 
   const handleInputChange = (e) => {
     setUserData({ ...userData, [e.target.name]: e.target.value });
+    setFormErrors({ ...formErrors, [e.target.name]: "" }); // clear error on typing
   };
 
   const validateInputs = () => {
-    const { email, password } = userData;
+    const errors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!email || !password) {
-      toast.warning("Please fill in all fields");
-      return false;
+    if (!userData.email.trim()) {
+      errors.email = "Email is required.";
+    } else if (!emailRegex.test(userData.email)) {
+      errors.email = "Enter a valid email.";
     }
 
-    if (!emailRegex.test(email)) {
-      toast.warning("Please enter a valid email");
-      return false;
+    if (!userData.password.trim()) {
+      errors.password = "Password is required.";
+    } else if (userData.password.length < 8) {
+      errors.password = "Password must be at least 8 characters.";
     }
 
-    if (password.length < 8) {
-      toast.warning("Password must be at least 8 characters");
-      return false;
-    }
+    setFormErrors(errors);
 
-    return true;
+    return Object.keys(errors).length === 0;
   };
 
   const handleLogin = (e) => {
@@ -125,25 +126,39 @@ function Login() {
         </div>
 
         <form className="space-y-4" onSubmit={handleLogin}>
-          <input
-            type="text"
-            name="email"
-            placeholder="Email"
-            value={userData.email}
-            autoComplete="email"
-            onChange={handleInputChange}
-            className="rounded-md w-full px-3 py-2 border border-gray-300 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-          />
+          <div>
+            <input
+              type="text"
+              name="email"
+              placeholder="Email"
+              value={userData.email}
+              autoComplete="email"
+              onChange={handleInputChange}
+              className={`rounded-md w-full px-3 py-2 border text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-indigo-500 text-sm ${
+                formErrors.email ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            {formErrors.email && (
+              <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>
+            )}
+          </div>
 
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={userData.password}
-            autoComplete="current-password"
-            onChange={handleInputChange}
-            className="rounded-md w-full px-3 py-2 border border-gray-300 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-          />
+          <div>
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={userData.password}
+              autoComplete="current-password"
+              onChange={handleInputChange}
+              className={`rounded-md w-full px-3 py-2 border text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-indigo-500 text-sm ${
+                formErrors.password ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            {formErrors.password && (
+              <p className="text-red-500 text-sm mt-1">{formErrors.password}</p>
+            )}
+          </div>
 
           <div className="flex items-center justify-between text-sm">
             <label className="flex items-center">
@@ -151,7 +166,7 @@ function Login() {
               <span className="ml-2 text-gray-900">Remember me</span>
             </label>
             <Link to="/Register" className="text-indigo-600 hover:text-indigo-500">
-             New User? Regitser 
+              New User? Register
             </Link>
           </div>
 

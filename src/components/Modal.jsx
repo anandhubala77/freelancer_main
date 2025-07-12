@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 
 const Modal = ({ isOpen, onClose, children }) => {
-  // Close modal on ESC key
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();
@@ -24,14 +23,13 @@ const Modal = ({ isOpen, onClose, children }) => {
       role="dialog"
       aria-modal="true"
     >
-      {/* Overlay */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300"
+        className="fixed inset-0 bg-black/20 transition-opacity duration-300"
         onClick={onClose}
       />
 
       {/* Modal content */}
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4 animate-fadeIn transition-transform duration-300">
+      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-xl mx-4 animate-fadeIn transition-transform duration-300">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -53,7 +51,6 @@ const Modal = ({ isOpen, onClose, children }) => {
           </svg>
         </button>
 
-        {/* Modal content */}
         <div className="p-6">{children}</div>
       </div>
     </div>

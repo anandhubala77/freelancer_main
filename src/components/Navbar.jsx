@@ -2,26 +2,20 @@ import React, { useState } from "react";
 import { HiBars3BottomLeft } from "react-icons/hi2";
 import { FiChevronDown } from "react-icons/fi";
 import Logo from "./Logo";
-import { findWorkItems, hireFreelancersItems } from "../services/navitems";
+import { findWorkItems } from "../services/navitems";
 import { Link, useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../store/slices/authSlice";
+import NotificationsDropdown from "../components/NotificationDropdown"; // 👈 import this
 
 const Navbar = () => {
   const [toggleMenu, setToggleMenu] = useState(false);
-  const [activeMobileMenu, setActiveMobileMenu] = useState(null);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-
   const { user } = useSelector((state) => state.auth);
   const userRole = user?.role;
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
-  const handleMobileMenuToggle = (menu) => {
-    setActiveMobileMenu(activeMobileMenu === menu ? null : menu);
-  };
 
   const handleLogout = () => {
     dispatch(logout());
@@ -50,7 +44,7 @@ const Navbar = () => {
     <nav className="bg-white shadow-md fixed w-full z-50 top-0">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center py-4">
-          {/* Left */}
+          {/* Left Section */}
           <div className="flex items-center gap-8">
             <Link
               to="/"
@@ -59,7 +53,7 @@ const Navbar = () => {
               <Logo />
             </Link>
 
-            {/* Desktop Navigation */}
+            {/* Desktop Menu */}
             <div className="hidden lg:flex items-center gap-6">
               {userRole === "jobseeker" && (
                 <div className="relative group">
@@ -79,31 +73,14 @@ const Navbar = () => {
                   </div>
                 </div>
               )}
-
-              {/* {userRole === "hiringperson" && (
-                <div className="relative group">
-                  <button className="text-gray-700 flex items-center gap-1">
-                    Hire Freelancers <FiChevronDown />
-                  </button>
-                  <div className="absolute top-full left-0 mt-2 bg-white shadow-md w-64 rounded-md opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-all duration-300">
-                    {hireFreelancersItems.map((item, index) => (
-                      <a
-                        key={index}
-                        href={item.href}
-                        className="block px-4 py-3 text-gray-700 hover:bg-gray-100"
-                      >
-                        {item.title}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )} */}
             </div>
           </div>
 
-          {/* Right */}
+          {/* Right Section */}
           <div className="flex items-center gap-4">
             <div className="hidden lg:flex items-center gap-4">
+              {user && <NotificationsDropdown />} {/* 🔔 Notifications */}
+
               {!user ? (
                 <Link to="/register">
                   <button className="text-gray-700 font-medium hover:bg-gray-200 py-2 px-5 rounded-full">
@@ -121,7 +98,6 @@ const Navbar = () => {
                       alt="User Avatar"
                       className="h-10 w-10 rounded-full object-cover"
                     />
-
                     <FiChevronDown
                       className={`mt-1 transition-transform ${
                         profileDropdownOpen ? "rotate-180" : ""
@@ -139,43 +115,25 @@ const Navbar = () => {
                         View Profile
                       </Link>
 
-                      {userRole === "jobseeker" && (
-                        <>
-                          <Link
-                            to="/user/profile/edit"
-                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            onClick={() => setProfileDropdownOpen(false)}
-                          >
-                            Update Profile
-                          </Link>
-                          <Link
-                            to="/user/update-password"
-                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            onClick={() => setProfileDropdownOpen(false)}
-                          >
-                            Update Password
-                          </Link>
-                        </>
-                      )}
+                      <Link
+                        to={
+                          userRole === "jobseeker"
+                            ? "/user/profile/edit"
+                            : "/user/updateHiringprofile"
+                        }
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setProfileDropdownOpen(false)}
+                      >
+                        Update Profile
+                      </Link>
 
-                      {userRole === "hiringperson" && (
-                        <>
-                          <Link
-                            to="/user/updateHiringprofile"
-                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            onClick={() => setProfileDropdownOpen(false)}
-                          >
-                            Update Profile
-                          </Link>
-                          <Link
-                            to="/user/update-password"
-                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            onClick={() => setProfileDropdownOpen(false)}
-                          >
-                            Update Password
-                          </Link>
-                        </>
-                      )}
+                      <Link
+                        to="/user/update-password"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setProfileDropdownOpen(false)}
+                      >
+                        Update Password
+                      </Link>
 
                       <button
                         onClick={handleLogout}
@@ -189,7 +147,7 @@ const Navbar = () => {
               )}
             </div>
 
-            {/* Mobile Icon */}
+            {/* Mobile Menu Button */}
             <div className="lg:hidden">
               <button onClick={() => setToggleMenu(!toggleMenu)}>
                 <HiBars3BottomLeft className="h-6 w-6" />
@@ -208,39 +166,45 @@ const Navbar = () => {
         }`}
       >
         <div className="flex flex-col gap-6 font-semibold">
-          {/* Show profile actions for logged-in users */}
           {user && (
-            <div className="flex flex-col gap-2 border-b pb-4 mb-4">
-              <Link
-                to="/user/profile/view"
-                className="block px-4 py-2 text-blue-700 hover:bg-blue-50 rounded"
-                onClick={() => setToggleMenu(false)}
-              >
-                View Profile
-              </Link>
-              <Link
-                to={
-                  userRole === "jobseeker"
-                    ? "/user/profile/edit"
-                    : "/user/updateHiringprofile"
-                }
-                className="block px-4 py-2 text-blue-700 hover:bg-blue-50 rounded"
-                onClick={() => setToggleMenu(false)}
-              >
-                Update Profile
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="block text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded"
-              >
-                Logout
-              </button>
-            </div>
+            <>
+              <NotificationsDropdown /> {/* Mobile view bell icon */}
+              <div className="flex flex-col gap-2 border-b pb-4 mb-4">
+                <Link
+                  to="/user/profile/view"
+                  className="block px-4 py-2 text-blue-700 hover:bg-blue-50 rounded"
+                  onClick={() => setToggleMenu(false)}
+                >
+                  View Profile
+                </Link>
+                <Link
+                  to={
+                    userRole === "jobseeker"
+                      ? "/user/profile/edit"
+                      : "/user/updateHiringprofile"
+                  }
+                  className="block px-4 py-2 text-blue-700 hover:bg-blue-50 rounded"
+                  onClick={() => setToggleMenu(false)}
+                >
+                  Update Profile
+                </Link>
+                <Link
+                  to="/user/update-password"
+                  className="block px-4 py-2 text-blue-700 hover:bg-blue-50 rounded"
+                  onClick={() => setToggleMenu(false)}
+                >
+                  Update Password
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded"
+                >
+                  Logout
+                </button>
+              </div>
+            </>
           )}
 
-          {/* Only show Hire Freelancers for hiringperson in mobile */}
-          
-          {/* Mobile Auth Buttons for guests */}
           {!user && (
             <div className="pt-4">
               <Link to="/login">

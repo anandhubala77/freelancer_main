@@ -3,7 +3,7 @@ import { QuotationForm } from "../components/QuotationForm";
 import Modal from "../components/Modal";
 import Button from "../components/Button";
 import UserLayout from "../layout/UserLayout";
-import  UpdateProfile  from "./UpdateProfile";
+import UpdateProfile from "./UpdateProfile";
 import { useDispatch, useSelector } from "react-redux";
 import JobList from "./JobList";
 import { fetchJobs } from "../store/slices/jobSlice";
@@ -15,12 +15,15 @@ import UnsubmittedWorks from "./UnsubmittedWorks";
 import ReceivedPayments from "./RecivedPayment";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../store/slices/authSlice";
+import { fetchMyQuotations } from "../store/slices/quotationSlice";
 
 const JobSeekerDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { list: jobs, loading, error } = useSelector((state) => state.jobs);
   const { user } = useSelector((state) => state.auth);
+  const { myQuotations } = useSelector((state) => state.quotation);
+
 
   const [selectedJob, setSelectedJob] = useState(null);
   const [showUpdateProfileModal, setShowUpdateProfileModal] = useState(false);
@@ -33,8 +36,9 @@ const JobSeekerDashboard = () => {
   const [sortOrder, setSortOrder] = useState("desc"); // "asc" or "desc"
 
   useEffect(() => {
-    if (user?.role === "jobseeker") {
-      dispatch(fetchJobs());
+    if (user?.role === "jobseeker" && user?.token) {
+      dispatch(fetchJobs(user.token));
+      dispatch(fetchMyQuotations(user.token));
     }
   }, [dispatch, user]);
 
@@ -81,7 +85,9 @@ const JobSeekerDashboard = () => {
         return (
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
-            <span className="ml-4 text-blue-600 font-medium">Loading jobs...</span>
+            <span className="ml-4 text-blue-600 font-medium">
+              Loading jobs...
+            </span>
           </div>
         );
       if (error)
@@ -157,7 +163,11 @@ const JobSeekerDashboard = () => {
             </div>
           </div>
           <div className="bg-white rounded-xl shadow p-2 sm:p-4">
-            <JobList jobs={filteredJobs} onApplyClick={setSelectedJob} />
+            <JobList
+              jobs={filteredJobs}
+              onApplyClick={setSelectedJob}
+              myQuotations={myQuotations}
+            />
           </div>
         </div>
       );

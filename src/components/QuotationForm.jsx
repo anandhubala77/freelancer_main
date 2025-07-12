@@ -9,16 +9,46 @@ const QuotationForm = ({ job, onSubmit, onCancel }) => {
     message: "",
   });
 
+  const [formErrors, setFormErrors] = useState({});
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+    setFormErrors((prev) => ({ ...prev, [name]: "" })); 
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    const { bidAmount, completionTime, message } = formData;
+
+    if (!bidAmount || isNaN(bidAmount) || Number(bidAmount) <= 0) {
+      errors.bidAmount = "Please enter a valid bid amount.";
+    }
+
+    if (
+      !completionTime ||
+      isNaN(completionTime) ||
+      Number(completionTime) <= 0
+    ) {
+      errors.completionTime = "Please enter a valid completion time.";
+    }
+
+    if (!message.trim() || message.length < 10) {
+      errors.message = "Message must be at least 10 characters.";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (!validateForm()) return;
+
     onSubmit({
       ...formData,
       jobId: job._id || job.id,
@@ -43,6 +73,9 @@ const QuotationForm = ({ job, onSubmit, onCancel }) => {
           type="number"
           required
         />
+        {formErrors.bidAmount && (
+          <p className="text-red-600 text-sm mt-1">{formErrors.bidAmount}</p>
+        )}
       </div>
 
       <div>
@@ -54,6 +87,11 @@ const QuotationForm = ({ job, onSubmit, onCancel }) => {
           type="number"
           required
         />
+        {formErrors.completionTime && (
+          <p className="text-red-600 text-sm mt-1">
+            {formErrors.completionTime}
+          </p>
+        )}
       </div>
 
       <div>
@@ -65,6 +103,9 @@ const QuotationForm = ({ job, onSubmit, onCancel }) => {
           type="textarea"
           required
         />
+        {formErrors.message && (
+          <p className="text-red-600 text-sm mt-1">{formErrors.message}</p>
+        )}
       </div>
 
       <div className="flex justify-end space-x-4">
