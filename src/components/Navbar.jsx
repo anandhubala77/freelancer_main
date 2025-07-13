@@ -3,16 +3,21 @@ import { HiBars3BottomLeft } from "react-icons/hi2";
 import { FiChevronDown } from "react-icons/fi";
 import Logo from "./Logo";
 import { findWorkItems } from "../services/navitems";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../store/slices/authSlice";
-import NotificationsDropdown from "../components/NotificationDropdown"; // 👈 import this
+import NotificationsDropdown from "../components/NotificationDropdown";
 
 const Navbar = () => {
   const [toggleMenu, setToggleMenu] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const { user } = useSelector((state) => state.auth);
+  const user = useSelector((state) => state.auth.user);
+  const token = sessionStorage.getItem("token");
+
+  const location = useLocation();
+  const isWelcomePage = location.pathname === "/"; // 👈 Check if WelcomePage
+
   const userRole = user?.role;
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -79,14 +84,24 @@ const Navbar = () => {
           {/* Right Section */}
           <div className="flex items-center gap-4">
             <div className="hidden lg:flex items-center gap-4">
-              {user && <NotificationsDropdown />} {/* 🔔 Notifications */}
+              {user && <NotificationsDropdown />}
 
               {!user ? (
-                <Link to="/register">
-                  <button className="text-gray-700 font-medium hover:bg-gray-200 py-2 px-5 rounded-full">
-                    Sign up
-                  </button>
-                </Link>
+                <>
+                  {/* 👇 Admin Login Button (Desktop) */}
+                  {isWelcomePage && (
+                    <Link to="/login">
+                      <button className="text-white bg-blue-500 hover:bg-red-700 px-4 py-2 rounded-full font-semibold">
+                        Admin Login
+                      </button>
+                    </Link>
+                  )}
+                  <Link to="/register">
+                    <button className="text-gray-700 font-medium  bg-pink-500 hover:bg-gray-200 py-2 px-5 rounded-full">
+                      Sign up
+                    </button>
+                  </Link>
+                </>
               ) : (
                 <div className="relative">
                   <button
@@ -166,9 +181,9 @@ const Navbar = () => {
         }`}
       >
         <div className="flex flex-col gap-6 font-semibold">
-          {user && (
+          {user && token && (
             <>
-              <NotificationsDropdown /> {/* Mobile view bell icon */}
+              <NotificationsDropdown />
               <div className="flex flex-col gap-2 border-b pb-4 mb-4">
                 <Link
                   to="/user/profile/view"
@@ -206,17 +221,25 @@ const Navbar = () => {
           )}
 
           {!user && (
-            <div className="pt-4">
+            <div className="pt-4 flex flex-col gap-2">
               <Link to="/login">
                 <button className="block w-full border-2 border-gray-300 py-2 px-4 rounded-full text-center hover:bg-gray-700 hover:text-white">
                   Login
                 </button>
               </Link>
               <Link to="/register">
-                <button className="mt-2 block w-full border-2 border-gray-300 py-2 px-4 rounded-full text-center hover:bg-gray-700 hover:text-white">
+                <button className="block w-full border-2 bg-pink-500 border-gray-300 py-2 px-4 rounded-full text-center hover:bg-gray-700 hover:text-white">
                   Sign Up
                 </button>
               </Link>
+              {/* 👇 Admin Login Button (Mobile) */}
+              {isWelcomePage && (
+                <Link to="/login">
+                  <button className="block w-full bg-blue-500 text-white py-2 px-4 rounded-full text-center hover:bg-red-700">
+                    Admin Login
+                  </button>
+                </Link>
+              )}
             </div>
           )}
         </div>

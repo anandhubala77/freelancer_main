@@ -66,6 +66,7 @@ const Register = () => {
 
     if (registerUser.fulfilled.match(resultAction)) {
       toast.success("User registered successfully");
+    
       setUserData({
         name: "",
         lastName: "",
@@ -73,10 +74,12 @@ const Register = () => {
         password: "",
         role: "",
       });
-      navigate("/Login");
-    } else {
-      toast.error(resultAction.payload || "Registration failed");
+    
+      setTimeout(() => {
+        navigate("/Login");
+      }, 1500); 
     }
+    
   };
 
   useEffect(() => {
@@ -152,7 +155,7 @@ const Register = () => {
           <select value={userData.role} onChange={(e) => setUserData({ ...userData, role: e.target.value })} required
             className="rounded-md w-full px-3 py-2 border">
             <option value="" disabled>Select your role</option>
-            <option value="admin">Admin</option>
+            {/* <option value="admin">Admin</option> */}
             <option value="jobseeker">Job Seeker</option>
             <option value="hiringperson">Hiring Person</option>
           </select>

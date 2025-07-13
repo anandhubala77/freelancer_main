@@ -1,85 +1,96 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { useEffect } from "react";
-
-
+import { useDispatch } from "react-redux";
+import { logout } from "../store/slices/authSlice";
 
 export default function WelcomePage() {
-  // No need for body padding as we'll handle spacing in the component
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const token = sessionStorage.getItem("token");
+    if (!token) dispatch(logout());
+  }, [dispatch]);
 
   return (
-    <div className="bg-[#181A20] min-h-screen flex flex-col pt-16">
+    <div className="bg-[#181A20] min-h-screen flex flex-col pt-16 overflow-x-hidden">
       <Navbar />
-      
 
       {/* HERO SECTION */}
       <section
-        className="relative flex items-center min-h-[70vh] px-4 py-28 sm:px-8 z-0"
+        className="relative flex items-center justify-center min-h-[80vh] px-4 py-25 sm:px-8"
         style={{
-          backgroundImage: "url('/path/to/your/hero-bg.jpg')", // Replace with your image
+          backgroundImage: `url("https://images.pexels.com/photos/5598297/pexels-photo-5598297.jpeg")`,
           backgroundSize: "cover",
-          backgroundPosition: "center"
+          backgroundPosition: "center",
         }}
       >
-        <div className="max-w-2xl z-10 w-full">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6 leading-tight">
+        <div className="absolute inset-0 bg-black/70 z-0" />
+        <div className="relative z-10 max-w-3xl text-center sm:text-left">
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-6 leading-tight">
             Hire the best freelancers for any job, online.
           </h1>
-          <ul className="text-white text-base sm:text-lg mb-6 sm:mb-8 space-y-2">
-            <li className="flex items-start"><span className="mr-2 text-pink-500">•</span> World's largest freelance marketplace</li>
-            <li className="flex items-start"><span className="mr-2 text-pink-500">•</span> Any job you can possibly think of</li>
-            <li className="flex items-start"><span className="mr-2 text-pink-500">•</span> Save up to 90% & get quotes for free</li>
-            <li className="flex items-start"><span className="mr-2 text-pink-500">•</span> Pay only when you're 100% happy</li>
+          <ul className="text-white text-lg mb-8 space-y-2">
+            {[
+              "World's largest freelance marketplace",
+              "Any job you can possibly think of",
+              "Save up to 90% & get quotes for free",
+              "Pay only when you're 100% happy",
+            ].map((text, index) => (
+              <li key={index} className="flex items-start justify-center sm:justify-start">
+                <span className="mr-2 text-pink-500">•</span> {text}
+              </li>
+            ))}
           </ul>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button className="bg-pink-600 hover:bg-pink-700 text-white font-semibold py-3 px-6 rounded-md text-base sm:text-lg w-full sm:w-auto transition-colors">
+          <div className="flex flex-col sm:flex-row justify-center sm:justify-start gap-4">
+            <button className="bg-pink-600 hover:bg-pink-700 text-white font-semibold py-3 px-6 rounded-md text-base sm:text-lg transition-all w-full sm:w-auto">
               Hire a Freelancer
             </button>
-            <button className="border border-white text-white font-semibold py-3 px-6 rounded-md text-base sm:text-lg hover:bg-white hover:text-black w-full sm:w-auto transition-colors">
+            <button className="border border-white text-white font-semibold py-3 px-6 rounded-md text-base sm:text-lg hover:bg-white hover:text-black transition-all w-full sm:w-auto">
               Earn Money Freelancing
             </button>
           </div>
         </div>
-        {/* Overlay for better contrast */}
-        <div className="absolute inset-0 bg-black/70 z-0" />
       </section>
 
       {/* ORGANIZATION POWER SECTION */}
-      <section className="flex flex-col md:flex-row items-center justify-between px-4 sm:px-8 py-12 sm:py-16 bg-[#181A20]">
-        <div className="flex-1 text-white w-full md:max-w-xl">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 leading-tight">
-            Power your organisation's <span className="text-pink-500">competitive advantage</span>
+      <section className="flex flex-col-reverse lg:flex-row items-center justify-between gap-10 px-4 sm:px-8 py-16">
+        <div className="flex-1 text-white w-full">
+          <h2 className="text-3xl md:text-4xl font-bold mb-8">
+            Power your organisation's{" "}
+            <span className="text-pink-500">competitive advantage</span>
           </h2>
-          <div className="space-y-6 sm:space-y-8">
-            <div className="p-4 rounded-lg hover:bg-[#23262F] transition-colors">
-              <h3 className="font-bold text-lg mb-2">Freelancer Enterprise</h3>
-              <p className="mb-3 text-gray-300">
-                Company budget? Get more done for less. Use our workforce of millions to help your business achieve more.
-              </p>
-              <a href="#" className="text-pink-500 font-semibold inline-flex items-center hover:underline">View more <span className="ml-1">→</span></a>
-            </div>
-            <div className="p-4 rounded-lg hover:bg-[#23262F] transition-colors">
-              <h3 className="font-bold text-lg mb-2">Innovation Challenges</h3>
-              <p className="mb-3 text-gray-300">
-                Transform impossible challenges into breakthrough solutions through the world's largest innovation ecosystem.
-              </p>
-              <a href="#" className="text-pink-500 font-semibold inline-flex items-center hover:underline">View more <span className="ml-1">→</span></a>
-            </div>
-            <div className="p-4 rounded-lg hover:bg-[#23262F] transition-colors">
-              <h3 className="font-bold text-lg mb-2">Freelancer API</h3>
-              <p className="mb-3 text-gray-300">
-                Millions of professionals on demand. Why hire people when you can simply integrate our talented cloud workforce instead?
-              </p>
-              <a href="#" className="text-pink-500 font-semibold inline-flex items-center hover:underline">View more <span className="ml-1">→</span></a>
-            </div>
+          <div className="space-y-6">
+            {[
+              {
+                title: "Freelancer Enterprise",
+                desc: "Company budget? Get more done for less. Use our workforce of millions to help your business achieve more.",
+              },
+              {
+                title: "Innovation Challenges",
+                desc: "Transform impossible challenges into breakthrough solutions through the world's largest innovation ecosystem.",
+              },
+              {
+                title: "Freelancer API",
+                desc: "Millions of professionals on demand. Why hire people when you can simply integrate our talented cloud workforce instead?",
+              },
+            ].map(({ title, desc }, i) => (
+              <div key={i} className="p-4 rounded-lg hover:bg-[#23262F] transition-colors">
+                <h3 className="font-bold text-lg mb-2">{title}</h3>
+                <p className="mb-2 text-gray-300">{desc}</p>
+                <a href="#" className="text-pink-500 font-semibold hover:underline">
+                  View more →
+                </a>
+              </div>
+            ))}
           </div>
         </div>
-        <div className="flex-1 flex justify-center mt-10 md:mt-0 w-full">
+        <div className="flex-1 flex justify-center">
+          {/* New image URL added here */}
           <img
-            src="/path/to/hummingbird-globe.png" // Replace with your image
-            alt="Hummingbird Globe"
-            className="w-full max-w-xs sm:max-w-sm md:max-w-md object-contain"
+            src="https://images.pexels.com/photos/5598329/pexels-photo-5598329.jpeg"
+            alt="Innovative Business Collaboration"
+            className="rounded-lg w-full max-w-md object-contain shadow-lg"
             loading="lazy"
           />
         </div>
@@ -88,40 +99,52 @@ export default function WelcomePage() {
       {/* BRAND LOGOS */}
       <section className="bg-[#14151a] py-8 px-4">
         <p className="text-center text-white text-sm mb-4 opacity-70">As used by</p>
-        <div className="max-w-5xl mx-auto flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8 items-center">
-          {/* Replace with <img src={...}/> for real logos */}
+        <div className="max-w-6xl mx-auto grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 place-items-center">
           {["Adobe", "Facebook", "Deloitte", "IBM", "Airbus", "Telstra", "Fujitsu", "Google"].map((brand, i) => (
-            <span key={i} className="text-white text-base sm:text-lg opacity-70 font-semibold px-2 py-1">{brand}</span>
+            <span key={i} className="text-white text-sm sm:text-base opacity-70 font-semibold">
+              {brand}
+            </span>
           ))}
         </div>
       </section>
 
       {/* FEATURES GRID */}
-      <section className="max-w-6xl mx-auto py-12 sm:py-16 px-4 sm:px-6">
-        <h2 className="text-2xl sm:text-3xl font-bold text-white mb-8 text-center sm:text-left">
+      <section className="max-w-6xl mx-auto py-12 px-4 sm:px-6">
+        <h2 className="text-2xl sm:text-3xl font-bold text-white mb-10 text-center sm:text-left">
           Make it real <span className="text-pink-500">with Freelancer</span>
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 text-white">
-          <div className="bg-[#23262F] p-5 rounded-lg hover:bg-[#2a2d36] transition-colors">
-            <div className="text-pink-500 text-2xl mb-3">💼</div>
-            <h3 className="font-bold text-lg mb-3">The best talent</h3>
-            <p className="text-gray-300">Discover reliable professionals by exploring their portfolios and immersing yourself in the feedback shared on their profiles.</p>
-          </div>
-          <div className="bg-[#23262F] p-5 rounded-lg hover:bg-[#2a2d36] transition-colors">
-            <div className="text-pink-500 text-2xl mb-3">⚡</div>
-            <h3 className="font-bold text-lg mb-3">Fast bids</h3>
-            <p className="text-gray-300">Get quick, no-obligation quotes from skilled freelancers. 80% of jobs receive bids within 60 seconds.</p>
-          </div>
-          <div className="bg-[#23262F] p-5 rounded-lg hover:bg-[#2a2d36] transition-colors">
-            <div className="text-pink-500 text-2xl mb-3">✨</div>
-            <h3 className="font-bold text-lg mb-3">Quality work</h3>
-            <p className="text-gray-300">With Freelancer's talent pool of over 70 million professionals, you'll find the right expert for your project.</p>
-          </div>
-          <div className="bg-[#23262F] p-5 rounded-lg hover:bg-[#2a2d36] transition-colors">
-            <div className="text-pink-500 text-2xl mb-3">🔄</div>
-            <h3 className="font-bold text-lg mb-3">Be in control</h3>
-            <p className="text-gray-300">Stay in the loop with the new project management dashboard, messaging, and milestone payments.</p>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-white">
+          {[
+            {
+              icon: "💼",
+              title: "The best talent",
+              desc: "Discover reliable professionals by exploring their portfolios and immersing yourself in feedback.",
+            },
+            {
+              icon: "⚡",
+              title: "Fast bids",
+              desc: "Get quick, no-obligation quotes. 80% of jobs receive bids within 60 seconds.",
+            },
+            {
+              icon: "✨",
+              title: "Quality work",
+              desc: "Freelancer's talent pool of 70M+ professionals ensures the right expert for your project.",
+            },
+            {
+              icon: "🔄",
+              title: "Be in control",
+              desc: "Manage work with dashboards, messaging, and milestone payments.",
+            },
+          ].map(({ icon, title, desc }, i) => (
+            <div
+              key={i}
+              className="bg-[#23262F] p-5 rounded-lg hover:bg-[#2a2d36] transition-colors"
+            >
+              <div className="text-pink-500 text-2xl mb-3">{icon}</div>
+              <h3 className="font-bold text-lg mb-3">{title}</h3>
+              <p className="text-gray-300">{desc}</p>
+            </div>
+          ))}
         </div>
       </section>
 
