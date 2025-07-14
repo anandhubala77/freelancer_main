@@ -108,7 +108,12 @@ const JobPostingForm = ({ onSubmit, job }) => {
       form.append('image', imageFile);
     }
 
-    dispatch(createProject(form));
+    onSubmit(job && job._id 
+      ? { projectId: job._id, updatedData: form } // for edit
+      : form 
+    );
+    
+    
   };
 
   return (
