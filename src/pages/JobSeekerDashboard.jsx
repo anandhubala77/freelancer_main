@@ -98,15 +98,21 @@ const JobSeekerDashboard = () => {
         );
 
       // Filter and Sort
-      let filteredJobs = jobs.filter(
-        (job) =>
-          job.title?.toLowerCase().includes(search.toLowerCase()) ||
-          job.skills?.some((skill) =>
-            skill.toLowerCase().includes(search.toLowerCase())
-          ) ||
-          job.location?.toLowerCase().includes(search.toLowerCase())
-      );
-
+      let filteredJobs = jobs.filter((job) => {
+        const searchLower = search.toLowerCase();
+      
+        const titleMatch = job.title?.toLowerCase().includes(searchLower);
+        const locationMatch = job.location?.toLowerCase().includes(searchLower);
+      
+        const skillsMatch = Array.isArray(job.skillsRequired)
+          ? job.skillsRequired.some((skill) =>
+              skill?.toLowerCase().includes(searchLower)
+            )
+          : false;
+      
+        return titleMatch || locationMatch || skillsMatch;
+      });
+      
       filteredJobs = filteredJobs.sort((a, b) => {
         if (sortBy === "date") {
           const dateA = new Date(a.createdAt);
