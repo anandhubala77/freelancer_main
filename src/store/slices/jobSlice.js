@@ -1,10 +1,11 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-
 import { base_url } from "../../services/base_url";
 
+// Set base URL for Axios
 axios.defaults.baseURL = base_url;
 
+// Async thunk to fetch all jobs
 export const fetchJobs = createAsyncThunk(
   "jobs/fetchJobs",
   async (token, { rejectWithValue }) => {
@@ -14,18 +15,20 @@ export const fetchJobs = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       });
-      return response.data;
+
+      // ✅ Only return the projects array; ignore pagination
+      return response.data?.projects || [];
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
 );
 
-
+// Create job slice
 const jobSlice = createSlice({
   name: "jobs",
   initialState: {
-    list: [],
+    list: [],       // Job list array
     loading: false,
     error: null,
   },
@@ -38,11 +41,11 @@ const jobSlice = createSlice({
       })
       .addCase(fetchJobs.fulfilled, (state, action) => {
         state.loading = false;
-        state.list = action.payload;
+        state.list = action.payload; // ✅ Array of jobs
       })
       .addCase(fetchJobs.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message;
+        state.error = action.payload || "Failed to fetch jobs";
       });
   },
 });

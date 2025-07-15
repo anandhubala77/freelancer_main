@@ -5,12 +5,12 @@ import { base_url } from "../../services/base_url";
 // Set the default base URL
 axios.defaults.baseURL = base_url;
 
-// ✅ Submit a new quotation
+
 export const submitQuotation = createAsyncThunk(
   "quotation/submitQuotation",
   async ({ quoteData, token }, { rejectWithValue }) => {
     try {
-      const res = await axios.post("/quotation", quoteData, {
+      const res = await axios.post("/quotations", quoteData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return res.data;
