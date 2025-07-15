@@ -100,8 +100,14 @@ export const ViewProfile = () => {
               <h2 className="text-xl font-bold text-gray-800 mb-3 border-b pb-2">
                 Education
               </h2>
-              {profileData.education ? (
-                <p className="text-gray-700">{profileData.education}</p>
+              {profileData.education && profileData.education.length > 0 ? (
+                <ul className="list-disc list-inside text-gray-700">
+                  {profileData.education.map((edu) => (
+                    <li key={edu._id}>
+                      {edu.degree} at {edu.institution} ({edu.year})
+                    </li>
+                  ))}
+                </ul>
               ) : (
                 <p className="text-gray-500 italic">
                   No education entries yet. Share your academic journey!
@@ -114,8 +120,20 @@ export const ViewProfile = () => {
               <h2 className="text-xl font-bold text-gray-800 mb-3 border-b pb-2">
                 Experience
               </h2>
-              {profileData.experience ? (
-                <p className="text-gray-700">{profileData.experience}</p>
+              {profileData.experience && profileData.experience.length > 0 ? (
+                <ul className="list-disc list-inside text-gray-700 space-y-2">
+                  {profileData.experience.map((exp) => (
+                    <li key={exp._id}>
+                      <div className="font-semibold">
+                        {exp.title} at {exp.company}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {exp.startDate} – {exp.endDate || "Present"}
+                      </div>
+                      <div className="text-sm">{exp.description}</div>
+                    </li>
+                  ))}
+                </ul>
               ) : (
                 <p className="text-gray-500 italic">
                   No experience added yet. Time to shine!

@@ -510,7 +510,8 @@ const projectsSlice = createSlice({
       })
       .addCase(fetchProjects.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.projects = action.payload;
+        // state.projects = action.payload;
+        state.projects = action.payload.projects; 
         state.error = null;
       })
       .addCase(fetchProjects.rejected, (state, action) => {

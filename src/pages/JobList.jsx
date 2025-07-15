@@ -10,6 +10,10 @@ const JobList = ({ jobs, onApplyClick, myQuotations = [] }) => {
   const [selectedJob, setSelectedJob] = useState(null);
   const [reason, setReason] = useState("");
 
+  // 🔽 New state for description modal
+  const [descModalOpen, setDescModalOpen] = useState(false);
+  const [descJob, setDescJob] = useState(null);
+
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
 
@@ -76,8 +80,23 @@ const JobList = ({ jobs, onApplyClick, myQuotations = [] }) => {
                 <h3 className="text-xl font-bold text-gray-800 mb-2">
                   {job.title}
                 </h3>
-                <p className="text-gray-600 mb-2 line-clamp-3">
-                  {job.description}
+
+                {/* ✅ Shortened Description + More button */}
+                <p className="text-gray-600 mb-2">
+                  {job.description.length > 150
+                    ? `${job.description.slice(0, 30)}...`
+                    : job.description}
+                  {job.description.length > 150 && (
+                    <button
+                      onClick={() => {
+                        setDescJob(job);
+                        setDescModalOpen(true);
+                      }}
+                      className="ml-2 text-blue-600 underline text-sm hover:text-blue-800"
+                    >
+                      More
+                    </button>
+                  )}
                 </p>
 
                 <p className="text-sm text-gray-700">
@@ -127,7 +146,7 @@ const JobList = ({ jobs, onApplyClick, myQuotations = [] }) => {
         })}
       </div>
 
-      {/* Modal for Report */}
+      {/* 🟥 Report Modal */}
       <Modal isOpen={reportModalOpen} onClose={() => setReportModalOpen(false)}>
         <div className="p-4">
           <h2 className="text-lg font-bold mb-4">
@@ -153,6 +172,42 @@ const JobList = ({ jobs, onApplyClick, myQuotations = [] }) => {
             >
               Submit Report
             </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 🟦 Bigger, Clean Modal for Description */}
+      <Modal isOpen={descModalOpen} onClose={() => setDescModalOpen(false)}>
+        <div className="p-6 w-full max-w-3xl bg-white rounded-lg shadow-lg">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+            {descJob?.title}
+          </h2>
+
+          <div className="max-h-80 overflow-y-auto mb-4 p-3 border rounded bg-gray-50 text-gray-700 whitespace-pre-line leading-relaxed">
+            {descJob?.description}
+          </div>
+
+          {/* Other details neatly aligned */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
+            <p>
+              <strong>💰 Budget:</strong> ₹{descJob?.budget}
+            </p>
+            <p>
+              <strong>📅 Timeline:</strong> {descJob?.timeline}
+            </p>
+            <p>
+              <strong>📍 Location:</strong> {descJob?.location}
+            </p>
+            <p className="col-span-full">
+              <strong>🛠 Skills:</strong>{" "}
+              {Array.isArray(descJob?.skillsRequired)
+                ? descJob.skillsRequired.join(", ")
+                : descJob?.skillsRequired}
+            </p>
+          </div>
+
+          <div className="mt-6 flex justify-end">
+            <Button onClick={() => setDescModalOpen(false)}>Close</Button>
           </div>
         </div>
       </Modal>
