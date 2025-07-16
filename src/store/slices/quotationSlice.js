@@ -73,6 +73,35 @@ export const updateQuotationStatus = createAsyncThunk(
   }
 );
 
+
+export const requestCorrection = createAsyncThunk(
+  "quotations/requestCorrection",
+  async ({ quotationId, message }, thunkAPI) => {
+    try {
+      const state = thunkAPI.getState();
+      const token = state.auth?.user?.token;
+
+      const res = await axios.put(
+        `/quotations/${quotationId}/request-correction`,
+        { message },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return res.data.quotation;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.error || "Failed to request correction"
+      );
+    }
+  }
+);
+
+
+
 // Slice
 const quotationSlice = createSlice({
   name: 'quotation',
@@ -144,7 +173,16 @@ const quotationSlice = createSlice({
       })
       .addCase(updateQuotationStatus.rejected, (state, action) => {
         state.error = action.payload?.error || 'Update failed';
-      });
+      })
+      .addCase(requestCorrection.fulfilled, (state, action) => {
+        const updated = action.payload.quotation; 
+        const index = state.quotations.findIndex(q => q._id === updated._id);
+        if (index !== -1) {
+          state.quotations[index] = updated;
+        }
+      })
+      
+      
   },
 });
 

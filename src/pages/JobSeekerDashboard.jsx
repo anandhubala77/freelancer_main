@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { logout } from "../store/slices/authSlice";
 import { fetchMyQuotations } from "../store/slices/quotationSlice";
 
+
 const JobSeekerDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -29,6 +30,8 @@ const JobSeekerDashboard = () => {
   const [showUpdateProfileModal, setShowUpdateProfileModal] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [activeTab, setActiveTab] = useState("available");
+  const [hasSubmitted, setHasSubmitted] = useState(false); // Set to true when submission is done
+
 
   // Search and Sort State
   const [search, setSearch] = useState("");
@@ -264,6 +267,8 @@ const JobSeekerDashboard = () => {
           >
             Works to Submit
           </button>
+
+          
           <button
             className={`pb-2 px-3 text-sm font-medium ${
               activeTab === "completed"

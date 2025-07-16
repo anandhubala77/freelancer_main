@@ -157,7 +157,7 @@ const SentPayment = () => {
                     {new Date(payment.paidAt).toLocaleDateString()}
                   </td>
                   <td className="p-3 font-semibold text-green-700">
-                    ₹{payment.amount}
+                    ₹{payment.amount/100}
                   </td>
                   <td className="p-3">{payment.jobId?.title || "N/A"}</td>
                   <td className="p-3">
@@ -181,7 +181,7 @@ const SentPayment = () => {
                 </td>
                 <td className="p-3 text-green-700">
                   ₹
-                  {filteredPayments.reduce((sum, p) => sum + p.amount, 0)}
+                  {filteredPayments.reduce((sum, p) => sum + p.amount/100, 0)}
                 </td>
                 <td colSpan="3"></td>
               </tr>
