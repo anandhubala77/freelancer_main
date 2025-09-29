@@ -16,6 +16,7 @@ import ReceivedPayments from "./RecivedPayment";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../store/slices/authSlice";
 import { fetchMyQuotations } from "../store/slices/quotationSlice";
+// import ChatLauncher from "../components/ChatLauncher";
 
 
 const JobSeekerDashboard = () => {
@@ -317,6 +318,7 @@ const JobSeekerDashboard = () => {
           <UpdateProfile onClose={handleCloseUpdateProfileModal} />
         </Modal>
       </div>
+      {/* <ChatLauncher /> */}
       <ToastContainer />
     </UserLayout>
   );

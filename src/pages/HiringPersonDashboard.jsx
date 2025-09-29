@@ -387,6 +387,7 @@ import {
 import CompletedProjects from "./CompletedProjects";
 import SentPayment from "../components/Sentpayment";
 import ActiveApplication from "../components/ActiveApplication";
+// import ChatLauncher from "../components/ChatLauncher";
 
 const HiringPersonDashboard = () => {
   const dispatch = useDispatch();
@@ -636,6 +637,7 @@ const HiringPersonDashboard = () => {
           </div>
         </Modal>
       </div>
+      {/* <ChatLauncher /> */}
     </UserLayout>
   );
 };
